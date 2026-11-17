@@ -1,0 +1,3485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maker's Corner Queue • Mrs. P's Classroom</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .panel-fade {
+      animation: fadeSlideIn 0.22s ease-out;
+    }
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    /* Custom scrollbar for dark Live Classroom Queue */
+    .dark-queue-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .dark-queue-scroll::-webkit-scrollbar-track {
+      background: #0f172a;
+      border-radius: 9999px;
+    }
+    .dark-queue-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    .dark-queue-scroll::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- Role PIN Authentication Modal -->
+  <div id="pin-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 space-y-4 panel-fade">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div id="pin-modal-icon" class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <div>
+            <h3 id="pin-modal-title" class="text-base font-extrabold text-slate-900">Unlock Teacher Mode</h3>
+            <p id="pin-modal-subtitle" class="text-xs text-slate-500">Enter Mrs. P's classroom PIN</p>
+          </div>
+        </div>
+        <button type="button" onclick="closePinModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form onsubmit="submitRolePin(event)" class="space-y-3">
+        <div>
+          <label for="role-pin-input" class="sr-only">Access PIN</label>
+          <input
+            id="role-pin-input"
+            type="password"
+            inputmode="numeric"
+            maxlength="8"
+            placeholder="••••"
+            class="w-full text-center tracking-[0.4em] text-xl font-extrabold rounded-xl border border-slate-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <p id="pin-modal-error" class="hidden text-xs font-semibold text-rose-600 mt-1.5 text-center">
+            Incorrect PIN. Please try again.
+          </p>
+          <p id="pin-modal-hint" class="text-[11px] text-slate-400 mt-1.5 text-center">
+            Default Teacher PIN: 1234 • Student Manager PIN: 2468
+          </p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" onclick="closePinModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+            Unlock
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Top Navigation & Live Machine Status Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <!-- Title & Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900">Maker's Corner Queue</h1>
+            <span class="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              Mrs. P's Classroom
+            </span>
+            <span id="cloud-sync-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+              <span id="cloud-sync-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span id="cloud-sync-text">Connecting...</span>
+            </span>
+          </div>
+          <p class="text-xs text-slate-500">3D Printing &amp; Laser Cutting Sign-Up, Live Queue &amp; Submissions Tracker</p>
+        </div>
+      </div>
+
+      <!-- Machine Live Status Pills -->
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2" id="machine-status-bar">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </div>
+
+    <!-- Workspace Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-100 flex items-center gap-1 overflow-x-auto">
+      <button
+        type="button"
+        id="tab-btn-queue"
+        onclick="switchWorkspaceTab('queue')"
+        class="px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-2 whitespace-nowrap transition"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        Sign Up &amp; Live Queue
+      </button>
+
+      <button
+        type="button"
+        id="tab-btn-submissions"
+        onclick="switchWorkspaceTab('submissions')"
+        class="px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap transition"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        Submissions Tracker
+        <span id="nav-submissions-badge" class="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700">0</span>
+      </button>
+
+      <button
+        type="button"
+        id="tab-btn-roster"
+        onclick="switchWorkspaceTab('roster')"
+        class="px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap transition"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        Roster
+        <span id="nav-roster-badge" class="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700">43</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ===================================================================== -->
+    <!-- WORKSPACE TAB 1: SIGN-UP FORM & LIVE DARK QUEUE                       -->
+    <!-- ===================================================================== -->
+    <div id="workspace-queue" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT COLUMN: CONDITIONAL MULTI-STEP SIGN-UP FORM (7 cols) -->
+      <section class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <!-- Form Progress Header -->
+        <div id="form-header-banner" class="bg-slate-900 text-white px-5 sm:px-6 py-4 transition-colors duration-300">
+          <div class="flex items-center justify-between mb-3">
+            <span id="step-badge" class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/15 text-white">
+              Step 1 of 4 • ID &amp; Process
+            </span>
+            <span id="process-pill-header" class="hidden text-xs font-bold px-2.5 py-1 rounded-full bg-white text-slate-900"></span>
+          </div>
+
+          <!-- Stepper Indicators -->
+          <div class="grid grid-cols-4 gap-2 text-[11px] font-semibold">
+            <div id="stepper-1" class="flex flex-col gap-1">
+              <div class="h-1.5 rounded-full bg-indigo-400"></div>
+              <span class="text-white truncate">1. ID &amp; Process</span>
+            </div>
+            <div id="stepper-2" class="flex flex-col gap-1">
+              <div class="h-1.5 rounded-full bg-white/20"></div>
+              <span class="text-slate-300 truncate">2. Machine &amp; Details</span>
+            </div>
+            <div id="stepper-3" class="flex flex-col gap-1">
+              <div class="h-1.5 rounded-full bg-white/20"></div>
+              <span id="stepper-3-label" class="text-slate-300 truncate">3. Details &amp; Rules</span>
+            </div>
+            <div id="stepper-4" class="flex flex-col gap-1">
+              <div class="h-1.5 rounded-full bg-white/20"></div>
+              <span class="text-slate-300 truncate">4. Confirmed</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-5 sm:p-6">
+          <!-- =============================================================== -->
+          <!-- STEP 1: STUDENT ID & PROCESS SELECTION                          -->
+          <!-- =============================================================== -->
+          <div id="step-1-panel" class="space-y-6 panel-fade">
+            <!-- Student ID Input with Live Roster Lookup -->
+            <div class="space-y-2">
+              <label for="student-id-input" class="block text-sm font-bold text-slate-800">
+                Enter your Student ID number <span class="text-rose-600">*</span>
+              </label>
+              <input
+                id="student-id-input"
+                type="text"
+                inputmode="numeric"
+                placeholder="e.g., 12345"
+                oninput="handleStudentIdInput(this.value)"
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-base font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+              <p id="error-student-id" class="hidden text-xs font-semibold text-rose-600">
+                Please enter your Student ID number to continue.
+              </p>
+
+              <!-- Live Roster Verification Card -->
+              <div id="roster-match-card" class="hidden rounded-xl border p-3.5 transition-all"></div>
+            </div>
+
+            <!-- Process Choice Cards -->
+            <div class="space-y-2.5">
+              <label class="block text-sm font-bold text-slate-800">
+                Are you 3D printing or laser cutting? <span class="text-rose-600">*</span>
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <!-- 3D Printing Card -->
+                <button
+                  type="button"
+                  id="process-card-3d"
+                  onclick="selectProcess('3D printing')"
+                  class="text-left rounded-2xl border-2 border-slate-200 hover:border-indigo-400 p-4 transition-all flex items-start gap-3.5 group"
+                >
+                  <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-extrabold text-slate-900 text-base">3D printing</div>
+                    <p class="text-xs text-slate-500 mt-0.5">H2D, P1S, or Flashforge • Upload sliced 3D file &amp; select filament</p>
+                  </div>
+                </button>
+
+                <!-- Laser Cutting Card -->
+                <button
+                  type="button"
+                  id="process-card-laser"
+                  onclick="selectProcess('Laser cutting')"
+                  class="text-left rounded-2xl border-2 border-slate-200 hover:border-amber-500 p-4 transition-all flex items-start gap-3.5 group"
+                >
+                  <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-extrabold text-slate-900 text-base">Laser cutting</div>
+                    <p class="text-xs text-slate-500 mt-0.5">XTOOL or H2D • Required safety rules &amp; fire procedure review</p>
+                  </div>
+                </button>
+              </div>
+              <p id="error-process" class="hidden text-xs font-semibold text-rose-600">
+                Please select either 3D printing or Laser cutting.
+              </p>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+              <button
+                type="button"
+                onclick="goToStep2()"
+                class="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2"
+              >
+                Continue to Machine &amp; Details
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- STEP 2: MACHINE & DETAILS                                       -->
+          <!-- =============================================================== -->
+          <div id="step-2-panel" class="hidden space-y-6 panel-fade">
+            <!-- Machine Selection -->
+            <div class="space-y-2.5">
+              <label class="block text-sm font-bold text-slate-800">
+                What machine are you using? <span class="text-rose-600">*</span>
+              </label>
+
+              <!-- 3D Printing Machines -->
+              <div id="machine-grid-3d" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  data-machine="H2D"
+                  onclick="selectMachine('H2D')"
+                  class="machine-option-btn rounded-xl border-2 border-slate-200 p-3.5 text-left hover:border-indigo-400 transition"
+                >
+                  <div class="font-extrabold text-slate-900 text-sm">H2D</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Bambu Dual-Nozzle</div>
+                </button>
+                <button
+                  type="button"
+                  data-machine="P1S"
+                  onclick="selectMachine('P1S')"
+                  class="machine-option-btn rounded-xl border-2 border-slate-200 p-3.5 text-left hover:border-indigo-400 transition"
+                >
+                  <div class="font-extrabold text-slate-900 text-sm">P1S</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Bambu Enclosed + AMS</div>
+                </button>
+                <button
+                  type="button"
+                  data-machine="Flashforge"
+                  onclick="selectMachine('Flashforge')"
+                  class="machine-option-btn rounded-xl border-2 border-slate-200 p-3.5 text-left hover:border-indigo-400 transition"
+                >
+                  <div class="font-extrabold text-slate-900 text-sm">Flashforge</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Single Extruder</div>
+                </button>
+              </div>
+
+              <!-- Laser Cutting Machines (XTOOL & H2D) -->
+              <div id="machine-grid-laser" class="hidden grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  data-machine="XTOOL"
+                  onclick="selectMachine('XTOOL')"
+                  class="machine-option-btn rounded-xl border-2 border-slate-200 p-3.5 text-left hover:border-amber-500 transition"
+                >
+                  <div class="font-extrabold text-slate-900 text-sm">XTOOL</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Dedicated Laser Cutter</div>
+                </button>
+                <button
+                  type="button"
+                  data-machine="H2D"
+                  onclick="selectMachine('H2D')"
+                  class="machine-option-btn rounded-xl border-2 border-slate-200 p-3.5 text-left hover:border-amber-500 transition"
+                >
+                  <div class="font-extrabold text-slate-900 text-sm">H2D</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Laser Module Mode</div>
+                </button>
+              </div>
+
+              <p id="error-machine" class="hidden text-xs font-semibold text-rose-600">
+                Please choose which machine you are using.
+              </p>
+            </div>
+
+            <!-- Duration Selection -->
+            <div class="space-y-2.5">
+              <label for="duration-input" class="block text-sm font-bold text-slate-800">
+                How long will your project take? <span class="text-rose-600">*</span>
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" data-dur="15 mins" onclick="setDuration('15 mins')" class="dur-chip px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition">15 mins</button>
+                <button type="button" data-dur="30 mins" onclick="setDuration('30 mins')" class="dur-chip px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition">30 mins</button>
+                <button type="button" data-dur="45 mins" onclick="setDuration('45 mins')" class="dur-chip px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition">45 mins</button>
+                <button type="button" data-dur="1 hour" onclick="setDuration('1 hour')" class="dur-chip px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition">1 hour</button>
+                <button type="button" data-dur="1.5 hours" onclick="setDuration('1.5 hours')" class="dur-chip px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition">1.5 hours</button>
+                <button type="button" data-dur="2 hours" onclick="setDuration('2 hours')" class="dur-chip px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition">2 hours</button>
+                <button type="button" data-dur="3+ hours" onclick="setDuration('3+ hours')" class="dur-chip px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition">3+ hours</button>
+              </div>
+              <input
+                id="duration-input"
+                type="text"
+                placeholder="Select a quick time above or type estimated time (e.g., 1 hr 20 mins)"
+                oninput="handleDurationInput(this.value)"
+                class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <p id="error-duration" class="hidden text-xs font-semibold text-rose-600">
+                Please enter how long your project will take.
+              </p>
+            </div>
+
+            <!-- 3D PRINT SPECIFIC MATERIAL & AMOUNT FIELDS (Shown on Step 2 for 3D Printing) -->
+            <div id="step2-3d-filament-section" class="space-y-5 pt-2 border-t border-slate-100">
+              <!-- Multi-Select Material / Filament -->
+              <div class="space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <label for="filament-input" class="block text-sm font-bold text-slate-800">
+                    What kind of filament / material will your print use? <span class="text-rose-600">*</span>
+                  </label>
+                  <span class="text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                    Select one or more
+                  </span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button" data-mat="ABS" onclick="toggleMaterialChip('ABS')" class="mat-chip px-3.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition flex items-center gap-1.5">
+                    <span class="mat-check hidden">✓</span> ABS
+                  </button>
+                  <button type="button" data-mat="PLA" onclick="toggleMaterialChip('PLA')" class="mat-chip px-3.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition flex items-center gap-1.5">
+                    <span class="mat-check hidden">✓</span> PLA
+                  </button>
+                  <button type="button" data-mat="PETG" onclick="toggleMaterialChip('PETG')" class="mat-chip px-3.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition flex items-center gap-1.5">
+                    <span class="mat-check hidden">✓</span> PETG
+                  </button>
+                  <button type="button" data-mat="TPU" onclick="toggleMaterialChip('TPU')" class="mat-chip px-3.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition flex items-center gap-1.5">
+                    <span class="mat-check hidden">✓</span> TPU
+                  </button>
+                  <button type="button" onclick="focusCustomMaterial()" class="px-3.5 py-1.5 rounded-lg border border-dashed border-slate-400 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                    + Other...
+                  </button>
+                </div>
+                <input
+                  id="filament-input"
+                  type="text"
+                  placeholder="Click materials above or type custom material(s), e.g., PLA, PETG, Support W"
+                  oninput="handleFilamentInput(this.value)"
+                  class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <p id="error-filament" class="hidden text-xs font-semibold text-rose-600">
+                  Please select or enter at least one filament/material type.
+                </p>
+              </div>
+
+              <!-- Numeric Response Validation for Filament Amount -->
+              <div class="space-y-2">
+                <label for="filament-amount-input" class="block text-sm font-bold text-slate-800">
+                  How much filament will your project use? (in grams) <span class="text-rose-600">*</span>
+                </label>
+                <div class="relative">
+                  <input
+                    id="filament-amount-input"
+                    type="number"
+                    step="any"
+                    min="0.1"
+                    inputmode="decimal"
+                    placeholder="Enter number only, e.g., 45"
+                    oninput="validateFilamentAmountInput()"
+                    class="w-full rounded-xl border border-slate-300 pl-4 pr-16 py-2.5 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                    grams
+                  </span>
+                </div>
+                <p id="error-filament-amount" class="hidden text-xs font-semibold text-rose-600">
+                  Must be a valid positive number (e.g., 45 or 12.5). Do not include letters.
+                </p>
+              </div>
+            </div>
+
+            <!-- Project Description -->
+            <div class="space-y-2 pt-2 border-t border-slate-100">
+              <label for="description-input" class="block text-sm font-bold text-slate-800">
+                Write a short description of your project. <span class="text-rose-600">*</span>
+              </label>
+              <p class="text-xs text-slate-500">
+                Include details Mrs. P will need to start your print like filament color.
+              </p>
+              <textarea
+                id="description-input"
+                rows="3"
+                placeholder="e.g., Robot intake mount — Black PLA in Slot 1, White PETG in Slot 2..."
+                class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              ></textarea>
+              <p id="error-description" class="hidden text-xs font-semibold text-rose-600">
+                Please write a short description of your project (including color/material details).
+              </p>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="pt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5">
+              <button
+                type="button"
+                onclick="goToStep1()"
+                class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-sm transition"
+              >
+                ← Back
+              </button>
+              <button
+                type="button"
+                id="step2-next-btn"
+                onclick="goToStep3()"
+                class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2"
+              >
+                Continue to File upload &amp; Reminders
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- STEP 3A: 3D PRINT — FILE UPLOAD & REMINDERS                     -->
+          <!-- =============================================================== -->
+          <div id="step-3a-panel" class="hidden space-y-6 panel-fade">
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+              <div>
+                <h2 class="text-sm font-extrabold text-indigo-950">File upload &amp; Reminders</h2>
+                <p id="step3a-summary-text" class="text-xs text-indigo-700 mt-0.5">Machine: H2D • Material: PLA</p>
+              </div>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-600 text-white">3D Print</span>
+            </div>
+
+            <!-- 3D Print File Upload -->
+            <div class="space-y-2.5">
+              <label class="block text-sm font-bold text-slate-800">
+                Upload 3D Print File (Optional or Required by Mrs. P)
+              </label>
+
+              <!-- Pre-Sliced Note -->
+              <div class="flex items-start gap-2.5 rounded-xl bg-sky-50 border border-sky-200 px-3.5 py-2.5 text-xs text-sky-900">
+                <svg class="w-4 h-4 text-sky-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>
+                  <strong>Note:</strong> Your attached file <strong>should already be sliced</strong> (e.g., <code class="font-mono bg-sky-100 px-1 rounded">.3mf</code> or <code class="font-mono bg-sky-100 px-1 rounded">.gcode</code>) with the proper printer profile and filament settings selected.
+                </span>
+              </div>
+
+              <!-- Dropzone -->
+              <div
+                id="file-dropzone"
+                onclick="document.getElementById('print-file-input').click()"
+                class="cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 hover:border-indigo-500 bg-slate-50 hover:bg-indigo-50/40 p-6 text-center transition"
+              >
+                <input
+                  id="print-file-input"
+                  type="file"
+                  accept=".3mf,.gcode,.stl,.obj,.step,.stp"
+                  onchange="handleFileSelect(event)"
+                  class="hidden"
+                />
+
+                <div id="file-empty-state" class="space-y-1.5">
+                  <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 mx-auto flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                  </div>
+                  <p class="text-sm font-bold text-slate-800">Click to upload or drag &amp; drop your sliced 3D file</p>
+                  <p class="text-xs text-slate-500">Supports .3mf, .gcode, .stl, .obj, .step (Max 50 MB)</p>
+                </div>
+
+                <div id="file-selected-state" class="hidden flex items-center justify-between gap-3 bg-white border border-indigo-200 rounded-xl p-3 text-left">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div class="min-w-0">
+                      <p id="uploaded-file-name" class="text-sm font-bold text-slate-900 truncate">model.3mf</p>
+                      <p id="uploaded-file-size" class="text-xs text-slate-500">1.2 MB</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onclick="removeUploadedFile(event)"
+                    class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 shrink-0"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rules & Reminders Box (Exact Google Form Content) -->
+            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 sm:p-5 space-y-3">
+              <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Rules &amp; Reminders
+              </h3>
+              <p class="text-xs font-semibold text-slate-700">
+                Check that you are using the correct software (Bambu or Orca)
+              </p>
+              <div class="text-xs text-slate-700 space-y-1">
+                <p class="font-bold text-slate-800">For printing on the H2D or P1S:</p>
+                <ul class="list-disc pl-5 space-y-1">
+                  <li>Have the correct device selected for your print</li>
+                  <li>Have the correct filament set for the AMS</li>
+                </ul>
+              </div>
+
+              <label class="flex items-start gap-3 pt-2 border-t border-slate-200 cursor-pointer">
+                <input
+                  id="rules-3d-checkbox"
+                  type="checkbox"
+                  class="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span class="text-xs font-bold text-slate-800">
+                  I have verified my slicer software (Bambu or Orca), selected the correct printer profile, and matched my AMS filament settings. <span class="text-rose-600">*</span>
+                </span>
+              </label>
+              <p id="error-3d-rules" class="hidden text-xs font-semibold text-rose-600">
+                Please confirm you have checked the Rules &amp; Reminders before joining the queue.
+              </p>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5">
+              <button
+                type="button"
+                onclick="goToStep2()"
+                class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-sm transition"
+              >
+                ← Back
+              </button>
+              <button
+                type="button"
+                onclick="submit3DPrintForm()"
+                class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2"
+              >
+                Join 3D Print Queue
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- STEP 3B: LASER CUTTING — SAFETY PROCEDURES & RULES              -->
+          <!-- =============================================================== -->
+          <div id="step-3b-panel" class="hidden space-y-5 panel-fade">
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3">
+              <div>
+                <h2 class="text-sm font-extrabold text-amber-950">Laser Cutting Details &amp; Safety Procedures</h2>
+                <p id="step3b-machine-subtitle" class="text-xs text-amber-800 mt-0.5">Selected Machine: XTOOL</p>
+              </div>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-600 text-white">Safety Required</span>
+            </div>
+
+            <!-- Safety Procedures & Rules List -->
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5 space-y-3">
+              <h3 class="text-sm font-extrabold text-slate-900">Safety Procedures &amp; Rules</h3>
+              <ul class="list-disc pl-5 space-y-1.5 text-xs text-slate-700 font-medium">
+                <li>After every single job, clean out the build plate and pan.</li>
+                <li>If you have not used the laser cutter, ask for help and do not start a cut alone.</li>
+                <li>If you are unsure of any settings, ask for help and do not start a cut alone.</li>
+                <li>Leave the door shut while it is working; the laser will damage your eyes!</li>
+                <li>Turn off the machine before you walk away!</li>
+                <li>Do not crowd around the laser cutter; a maximum of two students may monitor a cut at one time.</li>
+                <li>People crowding around the maker’s corner will be told to leave.</li>
+                <li>No horseplay in the maker’s corner.</li>
+              </ul>
+            </div>
+
+            <!-- Amber Fire & Detention Warning Callout -->
+            <div class="rounded-2xl bg-amber-50 border-2 border-amber-400 p-4 space-y-1.5 text-xs text-amber-950">
+              <p class="font-bold">
+                Remember, the laser cutter uses an actual LASER, which can be a risk for fire.
+              </p>
+              <p id="laser-care-statement" class="font-semibold">
+                The XTOOL is a machine to use with care and respect.
+              </p>
+              <p class="font-bold text-amber-900">
+                Not following laser cutting procedures will result in detention and may result in a ban on access to the maker’s corner.
+              </p>
+            </div>
+
+            <!-- Crimson Fire Blanket Emergency Banner -->
+            <div class="rounded-2xl bg-rose-600 text-white px-4 py-3.5 shadow-sm flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <p class="text-xs sm:text-sm font-extrabold tracking-wide uppercase">
+                IN THE EVENT OF A FIRE, USE THE FIRE BLANKET TO COVER THE FLAMES.
+              </p>
+            </div>
+
+            <!-- Required Yes Acknowledgment -->
+            <div class="rounded-2xl border-2 border-slate-200 p-4 bg-white space-y-2">
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input
+                  id="laser-agree-checkbox"
+                  type="checkbox"
+                  class="mt-0.5 w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                />
+                <span class="text-xs sm:text-sm font-bold text-slate-900">
+                  Yes — I understand if I do not follow these rules &amp; procedures I will lose access to the maker's corner. <span class="text-rose-600">*</span>
+                </span>
+              </label>
+              <p id="error-laser-rules" class="hidden text-xs font-semibold text-rose-600">
+                You must select "Yes" to acknowledge the laser safety rules before joining the queue.
+              </p>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5">
+              <button
+                type="button"
+                onclick="goToStep2()"
+                class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-sm transition"
+              >
+                ← Back
+              </button>
+              <button
+                type="button"
+                id="submit-laser-btn"
+                onclick="submitLaserForm()"
+                class="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2"
+              >
+                Join XTOOL Laser Queue
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- STEP 4: CONFIRMATION TICKET                                     -->
+          <!-- =============================================================== -->
+          <div id="step-4-panel" class="hidden space-y-5 panel-fade text-center py-2">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+
+            <div>
+              <h2 class="text-xl font-extrabold text-slate-900">You're in the Maker's Corner Queue!</h2>
+              <p class="text-xs text-slate-500 mt-1">Watch the Live Classroom Queue on the right for your turn.</p>
+            </div>
+
+            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 text-left space-y-2.5 max-w-md mx-auto">
+              <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                <span class="text-xs font-semibold text-slate-500">Queue Position</span>
+                <span id="confirm-position" class="text-sm font-extrabold text-indigo-600">#1</span>
+              </div>
+              <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                <span class="text-xs font-semibold text-slate-500">Student</span>
+                <span id="confirm-student" class="text-xs font-extrabold text-slate-900">—</span>
+              </div>
+              <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                <span class="text-xs font-semibold text-slate-500">Process &amp; Machine</span>
+                <span id="confirm-machine" class="text-xs font-extrabold text-slate-900">—</span>
+              </div>
+              <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                <span class="text-xs font-semibold text-slate-500">Estimated Time</span>
+                <span id="confirm-duration" class="text-xs font-extrabold text-slate-900">—</span>
+              </div>
+              <div id="confirm-filament-row" class="hidden flex items-center justify-between border-b border-slate-200 pb-2">
+                <span class="text-xs font-semibold text-slate-500">Material &amp; Grams</span>
+                <span id="confirm-filament" class="text-xs font-extrabold text-slate-900">—</span>
+              </div>
+              <div id="confirm-file-row" class="hidden flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500">Attached 3D File</span>
+                <span id="confirm-file" class="text-xs font-bold text-indigo-600 truncate max-w-[180px]">—</span>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button
+                type="button"
+                onclick="resetForm()"
+                class="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition"
+              >
+                + Submit Another Project
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: LIVE CLASSROOM QUEUE (DARK THEME, 5 cols) -->
+      <section class="lg:col-span-5 bg-slate-900 text-slate-100 rounded-2xl border border-slate-800 shadow-xl overflow-hidden flex flex-col">
+        <!-- Dark Header & Role Buttons -->
+        <div class="p-4 sm:p-5 border-b border-slate-800 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <h2 class="text-base font-extrabold text-white tracking-tight">Live Classroom Queue</h2>
+              <span id="live-queue-count" class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-slate-800 text-slate-300 border border-slate-700">
+                0
+              </span>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <!-- Student Manager Button -->
+              <button
+                type="button"
+                id="manager-mode-btn"
+                onclick="toggleManagerMode()"
+                class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 transition flex items-center gap-1.5"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span id="manager-mode-label">Student Manager</span>
+              </button>
+
+              <!-- Teacher Mode Button -->
+              <button
+                type="button"
+                id="teacher-mode-btn"
+                onclick="toggleTeacherMode()"
+                class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 transition flex items-center gap-1.5"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span id="teacher-mode-label">Teacher Mode (Mrs. P)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Unlocked Manager / Teacher Toolbar -->
+          <div id="teacher-toolbar" class="hidden rounded-xl bg-slate-800/90 border border-slate-700 p-3 space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span id="unlocked-role-badge" class="text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Teacher Mode Unlocked
+              </span>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onclick="togglePinChangeStrip()"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-700 hover:bg-slate-600 text-slate-200 transition"
+                >
+                  Change PIN
+                </button>
+                <button
+                  type="button"
+                  onclick="requestClearSamples()"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-700 hover:bg-slate-600 text-slate-200 transition"
+                >
+                  Clear Samples
+                </button>
+                <button
+                  type="button"
+                  id="queue-export-csv-btn"
+                  onclick="exportQueueCsv()"
+                  class="hidden px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition"
+                >
+                  Export CSV
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline PIN Change Strip -->
+            <div id="pin-change-strip" class="hidden pt-2 border-t border-slate-700 flex flex-wrap items-center gap-2">
+              <select
+                id="pin-change-target-select"
+                class="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1 text-xs font-bold text-slate-200 focus:outline-none"
+              >
+                <option value="teacher">Teacher PIN</option>
+                <option value="manager">Student Manager PIN</option>
+              </select>
+              <input
+                id="new-role-pin-input"
+                type="password"
+                inputmode="numeric"
+                maxlength="8"
+                placeholder="New 4-8 digit PIN"
+                class="flex-1 min-w-[130px] rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1 text-xs font-bold text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-400"
+              />
+              <button
+                type="button"
+                onclick="saveNewRolePin()"
+                class="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white"
+              >
+                Save PIN
+              </button>
+            </div>
+
+            <!-- Inline Confirmation Strip -->
+            <div id="teacher-confirm-strip" class="hidden pt-2 border-t border-slate-700 flex items-center justify-between gap-2">
+              <span id="teacher-confirm-text" class="text-xs font-semibold text-amber-200">Confirm action?</span>
+              <div class="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onclick="cancelTeacherConfirm()"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  id="teacher-confirm-exec-btn"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-600 text-white hover:bg-rose-500"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Filter Tabs (Active hides Completed automatically) -->
+          <div class="grid grid-cols-4 gap-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
+            <button
+              type="button"
+              id="status-filter-active"
+              onclick="setStatusFilter('active')"
+              class="py-1.5 px-2 rounded-lg bg-indigo-600 text-white shadow-xs transition"
+            >
+              Active
+            </button>
+            <button
+              type="button"
+              id="status-filter-Waiting"
+              onclick="setStatusFilter('Waiting')"
+              class="py-1.5 px-2 rounded-lg text-slate-400 hover:text-white transition"
+            >
+              Waiting
+            </button>
+            <button
+              type="button"
+              id="status-filter-In Progress"
+              onclick="setStatusFilter('In Progress')"
+              class="py-1.5 px-2 rounded-lg text-slate-400 hover:text-white transition"
+            >
+              In Progress
+            </button>
+            <button
+              type="button"
+              id="status-filter-Completed"
+              onclick="setStatusFilter('Completed')"
+              class="py-1.5 px-2 rounded-lg text-slate-400 hover:text-white transition"
+            >
+              Completed
+            </button>
+          </div>
+
+          <!-- Process Filter & Student Search -->
+          <div class="flex flex-col sm:flex-row gap-2">
+            <div class="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/80 text-[11px] font-bold shrink-0">
+              <button
+                type="button"
+                id="proc-filter-all"
+                onclick="setProcessFilter('all')"
+                class="px-2.5 py-1 rounded-lg bg-slate-700 text-white transition"
+              >
+                All
+              </button>
+              <button
+                type="button"
+                id="proc-filter-3D printing"
+                onclick="setProcessFilter('3D printing')"
+                class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition"
+              >
+                3D Print
+              </button>
+              <button
+                type="button"
+                id="proc-filter-Laser cutting"
+                onclick="setProcessFilter('Laser cutting')"
+                class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition"
+              >
+                Laser
+              </button>
+            </div>
+
+            <input
+              id="queue-search-input"
+              type="text"
+              placeholder="Search student ID, name, or machine..."
+              oninput="renderQueue()"
+              class="flex-1 rounded-xl bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs font-medium text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+        </div>
+
+        <!-- Dark Queue Cards Container -->
+        <div id="queue-list-container" class="p-4 sm:p-5 space-y-3 max-h-[680px] overflow-y-auto dark-queue-scroll">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- WORKSPACE TAB 2: SUBMISSIONS TRACKER                                  -->
+    <!-- ===================================================================== -->
+    <div id="workspace-submissions" class="hidden space-y-5 panel-fade">
+      <!-- Summary Metric Cards (Includes Est. Hours Printed next to Est. Filament) -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
+          <div class="text-xs font-semibold text-slate-500">Total Submissions</div>
+          <div id="metric-total" class="text-2xl font-extrabold text-slate-900 mt-1">0</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
+          <div class="text-xs font-semibold text-slate-500">Waiting</div>
+          <div id="metric-waiting" class="text-2xl font-extrabold text-amber-600 mt-1">0</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
+          <div class="text-xs font-semibold text-slate-500">In Progress</div>
+          <div id="metric-inprogress" class="text-2xl font-extrabold text-indigo-600 mt-1">0</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
+          <div class="text-xs font-semibold text-slate-500">Completed</div>
+          <div id="metric-completed" class="text-2xl font-extrabold text-emerald-600 mt-1">0</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
+          <div class="text-xs font-semibold text-slate-500">Est. Filament</div>
+          <div id="metric-filament" class="text-2xl font-extrabold text-slate-900 mt-1">0 g</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
+          <div class="text-xs font-semibold text-slate-500">Est. Hours Printed</div>
+          <div id="metric-hours" class="text-2xl font-extrabold text-indigo-700 mt-1">0.0 hrs</div>
+        </div>
+      </div>
+
+      <!-- Tracker Controls & Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div>
+            <h2 class="text-base font-extrabold text-slate-900">Active Submissions Tracker</h2>
+            <p class="text-xs text-slate-500">Live spreadsheet view of all student 3D printing and laser cutting submissions</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Quick Role Buttons on Tracker -->
+            <button
+              type="button"
+              onclick="toggleManagerMode()"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition"
+            >
+              <span class="tracker-manager-label">Student Manager</span>
+            </button>
+            <button
+              type="button"
+              onclick="toggleTeacherMode()"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition"
+            >
+              <span class="tracker-teacher-label">Teacher Mode (Mrs. P)</span>
+            </button>
+
+            <!-- Teacher-Only Export Controls -->
+            <div id="submissions-export-controls" class="hidden flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onclick="copySubmissionsForSheets()"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition flex items-center gap-1.5"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Copy for Google Sheets
+              </button>
+              <button
+                type="button"
+                onclick="exportQueueCsv()"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition flex items-center gap-1.5"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export Submissions CSV
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <input
+            id="sub-search-input"
+            type="text"
+            placeholder="Search student, ID, team, or description..."
+            oninput="renderSubmissionsTab()"
+            class="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <select
+            id="sub-filter-status"
+            onchange="renderSubmissionsTab()"
+            class="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="all">All Statuses</option>
+            <option value="Waiting">Waiting</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+          <select
+            id="sub-filter-process"
+            onchange="renderSubmissionsTab()"
+            class="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="all">All Processes</option>
+            <option value="3D printing">3D printing</option>
+            <option value="Laser cutting">Laser cutting</option>
+          </select>
+          <select
+            id="sub-filter-machine"
+            onchange="renderSubmissionsTab()"
+            class="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="all">All Machines</option>
+            <option value="H2D">H2D</option>
+            <option value="P1S">P1S</option>
+            <option value="Flashforge">Flashforge</option>
+            <option value="XTOOL">XTOOL</option>
+          </select>
+        </div>
+
+        <!-- Spreadsheet Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-600">
+                <th class="py-3 px-4">#</th>
+                <th class="py-3 px-4">Time</th>
+                <th class="py-3 px-4">Student</th>
+                <th class="py-3 px-4">Teams</th>
+                <th class="py-3 px-4">Process &amp; Machine</th>
+                <th class="py-3 px-4">Duration</th>
+                <th class="py-3 px-4">Material &amp; Grams</th>
+                <th class="py-3 px-4">Project Details &amp; File</th>
+                <th class="py-3 px-4">Status</th>
+              </tr>
+            </thead>
+            <tbody id="submissions-table-body" class="divide-y divide-slate-200 text-xs">
+              <!-- Populated dynamically via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- WORKSPACE TAB 3: CLASSROOM ROSTER                                     -->
+    <!-- ===================================================================== -->
+    <div id="workspace-roster" class="hidden space-y-5 panel-fade">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-base font-extrabold text-slate-900">Classroom Roster</h2>
+                <span id="roster-total-pill" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  43 Students
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Used to verify Student ID numbers and display FTC / FRC robotics teams automatically</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onclick="toggleTeacherMode()"
+              class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition"
+            >
+              <span class="tracker-teacher-label">Teacher Mode (Mrs. P)</span>
+            </button>
+
+            <!-- Teacher-Only Roster CSV Import -->
+            <div id="roster-teacher-import-wrap" class="hidden">
+              <input
+                id="roster-csv-input"
+                type="file"
+                accept=".csv"
+                onchange="handleRosterCsvImport(event)"
+                class="hidden"
+              />
+              <button
+                type="button"
+                onclick="document.getElementById('roster-csv-input').click()"
+                class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white transition"
+              >
+                Import Roster CSV
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teacher-Only Add Student Form -->
+        <div id="roster-teacher-add-panel" class="hidden p-4 bg-amber-50/70 border-b border-amber-200">
+          <form onsubmit="addRosterStudent(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 items-end">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Student ID *</label>
+              <input id="new-roster-id" type="text" placeholder="e.g., 12345" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">First Name *</label>
+              <input id="new-roster-first" type="text" placeholder="First Name" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Last Name *</label>
+              <input id="new-roster-last" type="text" placeholder="Last Name" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">FTC Team</label>
+              <input id="new-roster-ftc" type="text" placeholder="e.g., Knightmares" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">FRC Team</label>
+              <input id="new-roster-frc" type="text" placeholder="e.g., Omega Factor" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+            </div>
+            <div>
+              <button type="submit" class="w-full px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition">
+                + Add Student
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Roster Search & Team Filters -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <input
+            id="roster-search-input"
+            type="text"
+            placeholder="Search by Student ID or Name..."
+            oninput="renderRosterTab()"
+            class="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <select
+            id="roster-filter-ftc"
+            onchange="renderRosterTab()"
+            class="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="all">All FTC Teams</option>
+          </select>
+          <select
+            id="roster-filter-frc"
+            onchange="renderRosterTab()"
+            class="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="all">All FRC Teams</option>
+          </select>
+        </div>
+
+        <!-- Roster Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-600">
+                <th class="py-3 px-4">Student ID</th>
+                <th class="py-3 px-4">First Name</th>
+                <th class="py-3 px-4">Last Name</th>
+                <th class="py-3 px-4">FTC Team</th>
+                <th class="py-3 px-4">FRC Team</th>
+                <th class="py-3 px-4">Jobs</th>
+                <th class="py-3 px-4">Notes</th>
+                <th id="roster-actions-th" class="hidden py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="roster-table-body" class="divide-y divide-slate-200 text-xs">
+              <!-- Populated dynamically via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500">
+    Maker's Corner Queue • Mrs. P's Classroom • Always follow safety rules &amp; clean up after every job.
+  </footer>
+
+  <!-- Interactive Application Script with Real-Time Cloud Sync & Local Fallback -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // =========================================================================
+    // CLOUD CONFIGURATION & DEFAULT CLASSROOM ROSTER (43 STUDENTS)
+    // =========================================================================
+    // Optional: If hosting externally (e.g., Netlify, Vercel, or GitHub Pages),
+    // paste your Firebase web config values below so all computers sync in real time.
+    const MANUAL_CLOUD_CONFIG = {
+      apiKey: "",
+      authDomain: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    };
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'makers-corner-classroom';
+    const rawFirebaseConfig = typeof __firebase_config !== 'undefined'
+      ? JSON.parse(__firebase_config)
+      : (MANUAL_CLOUD_CONFIG.apiKey ? MANUAL_CLOUD_CONFIG : null);
+
+    const LOCAL_STORAGE_KEYS = {
+      queue: 'makers_corner_queue_v2',
+      roster: 'makers_corner_roster_v2',
+      pins: 'makers_corner_pins_v2',
+      samplesSeeded: 'makers_corner_samples_seeded_v2'
+    };
+
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+
+    const DEFAULT_TEACHER_PIN = '1234';
+    const DEFAULT_MANAGER_PIN = '2468';
+
+    let teacherPinValue = DEFAULT_TEACHER_PIN;
+    let managerPinValue = DEFAULT_MANAGER_PIN;
+
+    const DEFAULT_ROSTER = [
+      { id: '51608', firstName: 'Riago', lastName: 'Artavia', ftcTeam: 'Knightmares', frcTeam: 'Omega Factor', notes: '' },
+      { id: '52935', firstName: 'Seth', lastName: 'Azaroff', ftcTeam: 'Knightmares', frcTeam: 'Omega Factor', notes: '' },
+      { id: '53413', firstName: 'Ajay', lastName: 'Basnet', ftcTeam: 'Servo Surge', frcTeam: 'Roboponies', notes: '' },
+      { id: '57627', firstName: 'Keaton', lastName: 'Black', ftcTeam: 'Servo Surge', frcTeam: '', notes: '' },
+      { id: '56819', firstName: 'Gavin', lastName: 'Brown', ftcTeam: 'Clutch', frcTeam: 'Omega Factor', notes: '' },
+      { id: '69014', firstName: 'Wyatt', lastName: 'Burger', ftcTeam: 'Radical Robotics', frcTeam: 'Roboponies', notes: '' },
+      { id: '70952', firstName: 'Kadin', lastName: 'Chen', ftcTeam: 'Servo Surge', frcTeam: 'Roboponies', notes: '' },
+      { id: '55481', firstName: 'Max', lastName: 'Choate', ftcTeam: 'Gears of Liberty', frcTeam: 'Roboponies', notes: '' },
+      { id: '58759', firstName: 'Riley', lastName: 'Coe', ftcTeam: 'Radical Robotics', frcTeam: 'Roboponies', notes: '' },
+      { id: '55941', firstName: 'Elijah', lastName: 'Crank', ftcTeam: 'Gears of Liberty', frcTeam: 'Roboponies', notes: '' },
+      { id: '72519', firstName: 'Zack', lastName: 'Dalton', ftcTeam: 'Gears of Liberty', frcTeam: 'Roboponies', notes: '' },
+      { id: '55478', firstName: 'Collin', lastName: 'Davis', ftcTeam: 'Clutch', frcTeam: 'Omega Factor', notes: '' },
+      { id: '69003', firstName: 'Ryley', lastName: 'Felan', ftcTeam: 'Monsters of Mechanics', frcTeam: 'Omega Factor', notes: '' },
+      { id: '56427', firstName: 'Eva', lastName: 'FondevillaWelch', ftcTeam: 'Monsters of Mechanics', frcTeam: 'Omega Factor', notes: '' },
+      { id: '71949', firstName: 'Brayden', lastName: 'Foster', ftcTeam: 'Clutch', frcTeam: 'Omega Factor', notes: '' },
+      { id: '58128', firstName: 'Mason', lastName: 'Henderson', ftcTeam: 'Servo Surge', frcTeam: '', notes: '' },
+      { id: '51275', firstName: 'Bentley', lastName: 'Holliman', ftcTeam: 'Monsters of Mechanics', frcTeam: 'Omega Factor', notes: '' },
+      { id: '56003', firstName: 'Cole', lastName: 'Hunt', ftcTeam: 'Gears of Liberty', frcTeam: 'Roboponies', notes: '' },
+      { id: '53786', firstName: 'Connor', lastName: 'Jones', ftcTeam: 'Clutch', frcTeam: 'Omega Factor', notes: '' },
+      { id: '65696', firstName: 'Jack', lastName: 'Keiser', ftcTeam: 'Clutch', frcTeam: 'Omega Factor', notes: '' },
+      { id: '53591', firstName: 'Camden', lastName: 'Kern', ftcTeam: 'Monsters of Mechanics', frcTeam: 'Omega Factor', notes: '' },
+      { id: '69925', firstName: 'Alex', lastName: 'Knutson', ftcTeam: 'Radical Robotics', frcTeam: 'Roboponies', notes: '' },
+      { id: '48592', firstName: 'Wilder', lastName: 'Landrith', ftcTeam: 'Knightmares', frcTeam: 'Omega Factor', notes: '' },
+      { id: '53469', firstName: 'Westyn', lastName: 'Langerman', ftcTeam: 'Monsters of Mechanics', frcTeam: 'Omega Factor', notes: '' },
+      { id: '57890', firstName: 'Dillon', lastName: 'Lanno', ftcTeam: 'Servo Surge', frcTeam: 'Roboponies', notes: '' },
+      { id: '61964', firstName: 'Brenton', lastName: 'Lienou', ftcTeam: 'Servo Surge', frcTeam: 'Roboponies', notes: '' },
+      { id: '68600', firstName: 'Gavyn', lastName: 'McAfee', ftcTeam: 'Gears of Liberty', frcTeam: 'Roboponies', notes: '' },
+      { id: '57895', firstName: 'Zoe', lastName: 'Mickley', ftcTeam: 'Radical Robotics', frcTeam: 'Roboponies', notes: '' },
+      { id: '51360', firstName: 'Phillip', lastName: 'Nguyen', ftcTeam: 'Knightmares', frcTeam: 'Omega Factor', notes: '' },
+      { id: '58151', firstName: 'Parker', lastName: 'Orr', ftcTeam: 'Radical Robotics', frcTeam: 'Roboponies', notes: '' },
+      { id: '58409', firstName: 'Ariel', lastName: 'Parker', ftcTeam: 'Monsters of Mechanics', frcTeam: 'Omega Factor', notes: '' },
+      { id: '57262', firstName: 'Dallas', lastName: 'Rector', ftcTeam: 'Monsters of Mechanics', frcTeam: 'Omega Factor', notes: '' },
+      { id: '58353', firstName: 'Daphne', lastName: 'Rudrow', ftcTeam: 'Servo Surge', frcTeam: 'Roboponies', notes: '' },
+      { id: '56729', firstName: 'Jason', lastName: 'Saville', ftcTeam: 'Clutch', frcTeam: 'Omega Factor', notes: '' },
+      { id: '58225', firstName: 'Liam', lastName: 'Shriver', ftcTeam: 'Clutch', frcTeam: 'Omega Factor', notes: '' },
+      { id: '66471', firstName: 'Kollyn', lastName: 'Sissney', ftcTeam: 'Knightmares', frcTeam: 'Omega Factor', notes: '' },
+      { id: '54305', firstName: 'Jacob', lastName: 'Skodak', ftcTeam: 'Monsters of Mechanics', frcTeam: 'Omega Factor', notes: '' },
+      { id: '51309', firstName: 'Dani', lastName: 'Slaton', ftcTeam: 'Knightmares', frcTeam: 'Omega Factor', notes: '' },
+      { id: '63368', firstName: 'Michael', lastName: 'Tishyor', ftcTeam: 'Radical Robotics', frcTeam: 'Roboponies', notes: '' },
+      { id: '58837', firstName: 'Chad', lastName: 'Unten', ftcTeam: 'Knightmares', frcTeam: 'Omega Factor', notes: '' },
+      { id: '66909', firstName: 'Peyton', lastName: 'Wilson', ftcTeam: 'Clutch', frcTeam: 'Omega Factor', notes: '' },
+      { id: '76728', firstName: 'Benjamin', lastName: 'Wisdom', ftcTeam: 'Knightmares', frcTeam: 'Omega Factor', notes: '' },
+      { id: '74923', firstName: 'Lukas', lastName: 'Wyatt', ftcTeam: 'Knightmares', frcTeam: 'Omega Factor', notes: '' }
+    ];
+
+    // =========================================================================
+    // APPLICATION STATE
+    // =========================================================================
+    let queueItems = [];
+    let rosterList = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+    let activeRole = 'student'; // 'student' | 'manager' | 'teacher'
+    let pendingPinRole = 'teacher';
+    let currentStatusFilter = 'active'; // 'active' hides 'Completed' automatically
+    let currentProcessFilter = 'all';
+    let pendingDeleteStudentId = null;
+
+    // Session blob URLs for downloadable 3D files
+    const sessionBlobRegistry = {};
+
+    // Sign-up form state
+    let formState = {
+      studentId: '',
+      studentRecord: null,
+      process: '',
+      machine: '',
+      duration: '',
+      filament: '',
+      filamentAmount: '',
+      description: '',
+      fileName: '',
+      fileSize: '',
+      fileBlobUrl: '',
+      fileDataUrl: ''
+    };
+
+    // =========================================================================
+    // INITIALIZATION (CLOUD SYNC + LOCAL FALLBACK)
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      setupDragAndDrop();
+      populateTeamFilterDropdowns();
+      renderAllViews();
+      initCloudStorage();
+    });
+
+    function updateCloudSyncBadge(state, label) {
+      const badge = document.getElementById('cloud-sync-badge');
+      const dot = document.getElementById('cloud-sync-dot');
+      const text = document.getElementById('cloud-sync-text');
+      if (!badge || !dot || !text) return;
+
+      if (state === 'connected') {
+        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200';
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+      } else if (state === 'offline') {
+        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200';
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500';
+      } else {
+        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200';
+        dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+      }
+      text.textContent = label;
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const savedPins = localStorage.getItem(LOCAL_STORAGE_KEYS.pins);
+        if (savedPins) {
+          const parsedPins = JSON.parse(savedPins);
+          if (parsedPins.teacher) teacherPinValue = String(parsedPins.teacher);
+          if (parsedPins.manager) managerPinValue = String(parsedPins.manager);
+        }
+
+        const savedRoster = localStorage.getItem(LOCAL_STORAGE_KEYS.roster);
+        if (savedRoster) {
+          const parsedRoster = JSON.parse(savedRoster);
+          if (Array.isArray(parsedRoster) && parsedRoster.length > 0) {
+            rosterList = parsedRoster;
+          }
+        }
+
+        const savedQueue = localStorage.getItem(LOCAL_STORAGE_KEYS.queue);
+        const alreadySeeded = localStorage.getItem(LOCAL_STORAGE_KEYS.samplesSeeded) === 'true';
+        if (savedQueue) {
+          queueItems = JSON.parse(savedQueue);
+        } else if (!alreadySeeded) {
+          queueItems = getSampleEntries();
+          localStorage.setItem(LOCAL_STORAGE_KEYS.samplesSeeded, 'true');
+          saveToLocalStorage();
+        }
+      } catch (err) {
+        console.warn('Local storage unavailable:', err);
+        if (queueItems.length === 0) {
+          queueItems = getSampleEntries();
+        }
+      }
+      populateTeamFilterDropdowns();
+      renderAllViews();
+    }
+
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.queue, JSON.stringify(queueItems));
+        localStorage.setItem(LOCAL_STORAGE_KEYS.roster, JSON.stringify(rosterList));
+        localStorage.setItem(LOCAL_STORAGE_KEYS.pins, JSON.stringify({
+          teacher: teacherPinValue,
+          manager: managerPinValue
+        }));
+      } catch (err) {
+        console.warn('Could not persist to localStorage:', err);
+      }
+    }
+
+    async function initCloudStorage() {
+      if (!rawFirebaseConfig) {
+        updateCloudSyncBadge('offline', 'Local Browser Storage (Add Cloud Config to Sync Across PCs)');
+        loadFromLocalStorage();
+        return;
+      }
+
+      try {
+        const app = initializeApp(rawFirebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        currentUser = auth.currentUser;
+        if (!currentUser) {
+          updateCloudSyncBadge('offline', 'Local Browser Storage');
+          loadFromLocalStorage();
+          return;
+        }
+
+        updateCloudSyncBadge('connected', 'Cloud Synced');
+        subscribeToClassroomData();
+      } catch (err) {
+        console.error('Cloud initialization failed:', err);
+        updateCloudSyncBadge('offline', 'Local Browser Storage');
+        loadFromLocalStorage();
+      }
+    }
+
+    function subscribeToClassroomData() {
+      if (!db || !currentUser) return;
+
+      const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'classroom_settings', 'config');
+      const queueColRef = collection(db, 'artifacts', appId, 'public', 'data', 'queue_items');
+      const rosterColRef = collection(db, 'artifacts', appId, 'public', 'data', 'roster_students');
+
+      let settingsData = {};
+      let initialQueueCheckDone = false;
+      let initialRosterCheckDone = false;
+
+      onSnapshot(
+        settingsRef,
+        (docSnap) => {
+          settingsData = docSnap.exists() ? docSnap.data() : {};
+          if (settingsData.teacherPin) teacherPinValue = String(settingsData.teacherPin);
+          if (settingsData.managerPin) managerPinValue = String(settingsData.managerPin);
+        },
+        (error) => {
+          console.error('Settings sync error:', error);
+        }
+      );
+
+      onSnapshot(
+        queueColRef,
+        async (snapshot) => {
+          const items = [];
+          snapshot.forEach((docSnap) => {
+            items.push({ id: docSnap.id, ...docSnap.data() });
+          });
+
+          items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+          if (!initialQueueCheckDone) {
+            initialQueueCheckDone = true;
+            if (items.length === 0 && !settingsData.samplesSeeded) {
+              await seedCloudSampleQueue(settingsRef);
+              return;
+            }
+          }
+
+          queueItems = items;
+          renderAllViews();
+        },
+        (error) => {
+          console.error('Queue sync error:', error);
+          showToast('Live queue sync interrupted.', 'error');
+        }
+      );
+
+      onSnapshot(
+        rosterColRef,
+        async (snapshot) => {
+          const students = [];
+          snapshot.forEach((docSnap) => {
+            students.push({ id: docSnap.id, ...docSnap.data() });
+          });
+
+          students.sort((a, b) => String(a.lastName || '').localeCompare(String(b.lastName || '')));
+
+          if (!initialRosterCheckDone) {
+            initialRosterCheckDone = true;
+            if (students.length === 0 && !settingsData.rosterSeeded) {
+              await seedCloudDefaultRoster(settingsRef);
+              return;
+            }
+          }
+
+          rosterList = students;
+          populateTeamFilterDropdowns();
+          if (formState.studentId) {
+            handleStudentIdInput(formState.studentId);
+          }
+          renderAllViews();
+        },
+        (error) => {
+          console.error('Roster sync error:', error);
+        }
+      );
+    }
+
+    function getSampleEntries() {
+      const baseOrder = 1000;
+      return [
+        {
+          id: 'sample-1',
+          order: baseOrder + 1,
+          studentId: '52935',
+          studentName: 'Seth Azaroff',
+          ftcTeam: 'Knightmares',
+          frcTeam: 'Omega Factor',
+          process: '3D printing',
+          machine: 'H2D',
+          duration: '1 hour',
+          filament: 'PLA, PETG',
+          filamentAmount: '68',
+          description: 'Dual-material drivetrain spacer — Black PLA + Orange PETG in AMS Slot 1 & 2.',
+          fileName: 'drivetrain_spacer_sliced.3mf',
+          fileSize: '2.4 MB',
+          fileDataUrl: '',
+          status: 'In Progress',
+          timestamp: '10:15 AM',
+          isSample: true
+        },
+        {
+          id: 'sample-2',
+          order: baseOrder + 2,
+          studentId: '57895',
+          studentName: 'Zoe Mickley',
+          ftcTeam: 'Radical Robotics',
+          frcTeam: 'Roboponies',
+          process: 'Laser cutting',
+          machine: 'XTOOL',
+          duration: '30 mins',
+          filament: '',
+          filamentAmount: '',
+          description: '3mm Baltic birch plywood electronics mounting plate.',
+          fileName: '',
+          fileSize: '',
+          fileDataUrl: '',
+          status: 'Waiting',
+          timestamp: '10:32 AM',
+          isSample: true
+        },
+        {
+          id: 'sample-3',
+          order: baseOrder + 3,
+          studentId: '56819',
+          studentName: 'Gavin Brown',
+          ftcTeam: 'Clutch',
+          frcTeam: 'Omega Factor',
+          process: '3D printing',
+          machine: 'P1S',
+          duration: '2 hours',
+          filament: 'ABS',
+          filamentAmount: '115',
+          description: 'Intake pulley guard — Navy Blue ABS, 0.20mm layer height.',
+          fileName: 'pulley_guard_P1S.3mf',
+          fileSize: '3.1 MB',
+          fileDataUrl: '',
+          status: 'Waiting',
+          timestamp: '10:44 AM',
+          isSample: true
+        }
+      ];
+    }
+
+    async function seedCloudSampleQueue(settingsRef) {
+      if (!db || !currentUser) return;
+      try {
+        await setDoc(settingsRef, { samplesSeeded: true }, { merge: true });
+        const samples = getSampleEntries();
+        for (const item of samples) {
+          const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', item.id);
+          await setDoc(itemRef, item);
+        }
+      } catch (err) {
+        console.error('Error seeding sample queue:', err);
+      }
+    }
+
+    async function seedCloudDefaultRoster(settingsRef) {
+      if (!db || !currentUser) return;
+      try {
+        await setDoc(settingsRef, { rosterSeeded: true }, { merge: true });
+        for (const student of DEFAULT_ROSTER) {
+          const studentRef = doc(db, 'artifacts', appId, 'public', 'data', 'roster_students', String(student.id));
+          await setDoc(studentRef, student);
+        }
+      } catch (err) {
+        console.error('Error seeding default roster:', err);
+      }
+    }
+
+    function renderAllViews() {
+      renderMachineStatusBar();
+      renderQueue();
+      renderSubmissionsTab();
+      renderRosterTab();
+      updateTopBadges();
+    }
+
+    function updateTopBadges() {
+      const subBadge = document.getElementById('nav-submissions-badge');
+      const rosterBadge = document.getElementById('nav-roster-badge');
+      const rosterPill = document.getElementById('roster-total-pill');
+      if (subBadge) subBadge.textContent = queueItems.length;
+      if (rosterBadge) rosterBadge.textContent = rosterList.length;
+      if (rosterPill) rosterPill.textContent = `${rosterList.length} Students`;
+    }
+
+    // =========================================================================
+    // WORKSPACE TABS & MACHINE LIVE STATUS BAR
+    // =========================================================================
+    function switchWorkspaceTab(tabName) {
+      const tabs = ['queue', 'submissions', 'roster'];
+      tabs.forEach((t) => {
+        const panel = document.getElementById(`workspace-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (panel) {
+          panel.classList.toggle('hidden', t !== tabName);
+        }
+        if (btn) {
+          if (t === tabName) {
+            btn.className = 'px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-2 whitespace-nowrap transition';
+          } else {
+            btn.className = 'px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap transition';
+          }
+        }
+      });
+
+      if (tabName === 'submissions') renderSubmissionsTab();
+      if (tabName === 'roster') renderRosterTab();
+    }
+
+    function renderMachineStatusBar() {
+      const bar = document.getElementById('machine-status-bar');
+      if (!bar) return;
+
+      const machines = ['H2D', 'P1S', 'Flashforge', 'XTOOL'];
+      bar.innerHTML = machines.map((m) => {
+        const activeJob = queueItems.find(
+          (item) => item.machine === m && item.status === 'In Progress'
+        );
+        if (activeJob) {
+          return `
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200" title="In use by ${escapeHtml(activeJob.studentName)}">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span>${m}:</span>
+              <span class="font-semibold">In Use</span>
+            </div>
+          `;
+        }
+        return `
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>${m}:</span>
+            <span class="font-semibold">Available</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // ROLE & PIN MANAGEMENT (STUDENT / STUDENT MANAGER / TEACHER MODE)
+    // =========================================================================
+    function canManageQueue() {
+      return activeRole === 'teacher' || activeRole === 'manager';
+    }
+
+    function canEditRoster() {
+      return activeRole === 'teacher';
+    }
+
+    function canExportData() {
+      return activeRole === 'teacher';
+    }
+
+    function getStoredPin(role) {
+      return role === 'manager' ? managerPinValue : teacherPinValue;
+    }
+
+    async function setStoredPin(role, newPin) {
+      if (role === 'manager') {
+        managerPinValue = newPin;
+      } else {
+        teacherPinValue = newPin;
+      }
+
+      saveToLocalStorage();
+
+      if (db && currentUser) {
+        try {
+          const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'classroom_settings', 'config');
+          const patch = role === 'manager' ? { managerPin: newPin } : { teacherPin: newPin };
+          await setDoc(settingsRef, patch, { merge: true });
+        } catch (err) {
+          console.error('Failed to sync PIN to cloud:', err);
+        }
+      }
+    }
+
+    function toggleManagerMode() {
+      if (activeRole === 'manager') {
+        setActiveRoleState('student');
+        showToast('Student Manager locked.', 'info');
+      } else {
+        openPinModal('manager');
+      }
+    }
+
+    function toggleTeacherMode() {
+      if (activeRole === 'teacher') {
+        setActiveRoleState('student');
+        showToast('Teacher Mode locked.', 'info');
+      } else {
+        openPinModal('teacher');
+      }
+    }
+
+    function openPinModal(role) {
+      pendingPinRole = role;
+      const modal = document.getElementById('pin-modal');
+      const title = document.getElementById('pin-modal-title');
+      const subtitle = document.getElementById('pin-modal-subtitle');
+      const input = document.getElementById('role-pin-input');
+      const error = document.getElementById('pin-modal-error');
+
+      if (role === 'manager') {
+        title.textContent = 'Unlock Student Manager';
+        subtitle.textContent = 'Enter Student Manager PIN to update the queue';
+      } else {
+        title.textContent = 'Unlock Teacher Mode';
+        subtitle.textContent = "Enter Mrs. P's PIN for full queue, roster & export access";
+      }
+
+      input.value = '';
+      error.classList.add('hidden');
+      modal.classList.remove('hidden');
+      setTimeout(() => input.focus(), 50);
+    }
+
+    function closePinModal() {
+      document.getElementById('pin-modal').classList.add('hidden');
+    }
+
+    function submitRolePin(e) {
+      e.preventDefault();
+      const input = document.getElementById('role-pin-input');
+      const error = document.getElementById('pin-modal-error');
+      const entered = (input.value || '').trim();
+
+      if (entered === getStoredPin(pendingPinRole)) {
+        closePinModal();
+        setActiveRoleState(pendingPinRole);
+        const label = pendingPinRole === 'manager' ? 'Student Manager' : 'Teacher Mode';
+        showToast(`${label} unlocked.`, 'success');
+      } else {
+        error.classList.remove('hidden');
+        input.select();
+      }
+    }
+
+    function setActiveRoleState(role) {
+      activeRole = role;
+
+      const managerBtn = document.getElementById('manager-mode-btn');
+      const managerLabel = document.getElementById('manager-mode-label');
+      const teacherBtn = document.getElementById('teacher-mode-btn');
+      const teacherLabel = document.getElementById('teacher-mode-label');
+      const toolbar = document.getElementById('teacher-toolbar');
+      const unlockedBadge = document.getElementById('unlocked-role-badge');
+      const queueExportBtn = document.getElementById('queue-export-csv-btn');
+      const subExportControls = document.getElementById('submissions-export-controls');
+      const rosterImportWrap = document.getElementById('roster-teacher-import-wrap');
+      const rosterAddPanel = document.getElementById('roster-teacher-add-panel');
+      const rosterActionsTh = document.getElementById('roster-actions-th');
+      const pinTargetSelect = document.getElementById('pin-change-target-select');
+
+      // Reset PIN change & confirm strips
+      document.getElementById('pin-change-strip').classList.add('hidden');
+      cancelTeacherConfirm();
+
+      // Update button labels across Queue & Tracker tabs
+      const mgrText = role === 'manager' ? 'Lock Manager' : 'Student Manager';
+      const tchText = role === 'teacher' ? 'Lock Teacher Mode' : 'Teacher Mode (Mrs. P)';
+
+      if (managerLabel) managerLabel.textContent = mgrText;
+      if (teacherLabel) teacherLabel.textContent = tchText;
+      document.querySelectorAll('.tracker-manager-label').forEach((el) => (el.textContent = mgrText));
+      document.querySelectorAll('.tracker-teacher-label').forEach((el) => (el.textContent = tchText));
+
+      if (role === 'manager') {
+        managerBtn.className = 'px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-sky-600 text-white border border-sky-500 transition flex items-center gap-1.5';
+        teacherBtn.className = 'px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 transition flex items-center gap-1.5';
+        toolbar.classList.remove('hidden');
+        unlockedBadge.textContent = 'Student Manager Unlocked';
+        unlockedBadge.className = 'text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/30';
+        pinTargetSelect.innerHTML = '<option value="manager">Student Manager PIN</option>';
+      } else if (role === 'teacher') {
+        teacherBtn.className = 'px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-amber-500 text-slate-950 border border-amber-400 transition flex items-center gap-1.5';
+        managerBtn.className = 'px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 transition flex items-center gap-1.5';
+        toolbar.classList.remove('hidden');
+        unlockedBadge.textContent = 'Teacher Mode Unlocked';
+        unlockedBadge.className = 'text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        pinTargetSelect.innerHTML = `
+          <option value="teacher">Teacher PIN</option>
+          <option value="manager">Student Manager PIN</option>
+        `;
+      } else {
+        managerBtn.className = 'px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 transition flex items-center gap-1.5';
+        teacherBtn.className = 'px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 transition flex items-center gap-1.5';
+        toolbar.classList.add('hidden');
+      }
+
+      // Teacher-only exports & roster editing controls
+      const isTeacher = canExportData();
+      if (queueExportBtn) queueExportBtn.classList.toggle('hidden', !isTeacher);
+      if (subExportControls) subExportControls.classList.toggle('hidden', !isTeacher);
+      if (rosterImportWrap) rosterImportWrap.classList.toggle('hidden', !canEditRoster());
+      if (rosterAddPanel) rosterAddPanel.classList.toggle('hidden', !canEditRoster());
+      if (rosterActionsTh) rosterActionsTh.classList.toggle('hidden', !canEditRoster());
+
+      renderAllViews();
+    }
+
+    function togglePinChangeStrip() {
+      if (!canManageQueue()) return;
+      const strip = document.getElementById('pin-change-strip');
+      const input = document.getElementById('new-role-pin-input');
+      strip.classList.toggle('hidden');
+      if (!strip.classList.contains('hidden')) {
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    async function saveNewRolePin() {
+      if (!canManageQueue()) return;
+      const select = document.getElementById('pin-change-target-select');
+      const input = document.getElementById('new-role-pin-input');
+      const targetRole = activeRole === 'manager' ? 'manager' : (select ? select.value : 'teacher');
+      const newPin = (input.value || '').trim();
+
+      if (!/^\d{4,8}$/.test(newPin)) {
+        showToast('PIN must be 4 to 8 digits.', 'error');
+        return;
+      }
+
+      await setStoredPin(targetRole, newPin);
+      document.getElementById('pin-change-strip').classList.add('hidden');
+      input.value = '';
+
+      const roleName = targetRole === 'manager' ? 'Student Manager' : 'Teacher Mode';
+      showToast(`${roleName} PIN has been updated.`, 'success');
+    }
+
+    function requestClearSamples() {
+      if (!canManageQueue()) return;
+      const strip = document.getElementById('teacher-confirm-strip');
+      const text = document.getElementById('teacher-confirm-text');
+      const execBtn = document.getElementById('teacher-confirm-exec-btn');
+      if (!strip || !text || !execBtn) return;
+
+      text.textContent = 'Remove all pre-loaded sample entries from the queue?';
+      strip.classList.remove('hidden');
+      execBtn.onclick = async () => {
+        const samplesToRemove = queueItems.filter((item) => item.isSample);
+        queueItems = queueItems.filter((item) => !item.isSample);
+        cancelTeacherConfirm();
+        saveToLocalStorage();
+        renderAllViews();
+
+        if (db && currentUser) {
+          try {
+            const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'classroom_settings', 'config');
+            await setDoc(settingsRef, { samplesSeeded: true }, { merge: true });
+            for (const s of samplesToRemove) {
+              await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', s.id));
+            }
+          } catch (err) {
+            console.error('Error clearing sample entries:', err);
+          }
+        }
+
+        showToast('Sample entries cleared.', 'info');
+      };
+    }
+
+    function cancelTeacherConfirm() {
+      const strip = document.getElementById('teacher-confirm-strip');
+      if (strip) strip.classList.add('hidden');
+    }
+
+    // =========================================================================
+    // STEP 1: STUDENT ID ROSTER LOOKUP & PROCESS SELECTION
+    // =========================================================================
+    function handleStudentIdInput(rawVal) {
+      const cleaned = (rawVal || '').trim();
+      formState.studentId = cleaned;
+      document.getElementById('error-student-id').classList.add('hidden');
+
+      const matchCard = document.getElementById('roster-match-card');
+      if (!cleaned) {
+        formState.studentRecord = null;
+        matchCard.classList.add('hidden');
+        return;
+      }
+
+      const student = rosterList.find((s) => String(s.id).trim() === cleaned);
+      formState.studentRecord = student || null;
+
+      if (student) {
+        const teams = [
+          student.ftcTeam ? `FTC: ${escapeHtml(student.ftcTeam)}` : '',
+          student.frcTeam ? `FRC: ${escapeHtml(student.frcTeam)}` : ''
+        ].filter(Boolean).join(' • ');
+
+        matchCard.className = 'rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 transition-all';
+        matchCard.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0">
+                ✓
+              </div>
+              <div>
+                <div class="text-sm font-extrabold text-emerald-950">
+                  ${escapeHtml(student.firstName)} ${escapeHtml(student.lastName)}
+                </div>
+                <div class="text-xs font-semibold text-emerald-800">
+                  ID #${escapeHtml(student.id)} ${teams ? `• ${teams}` : ''}
+                </div>
+              </div>
+            </div>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white">Roster Verified</span>
+          </div>
+          ${student.notes ? `<p class="text-xs text-emerald-900 mt-2 pt-2 border-t border-emerald-200"><strong>Note:</strong> ${escapeHtml(student.notes)}</p>` : ''}
+        `;
+        matchCard.classList.remove('hidden');
+      } else {
+        matchCard.className = 'rounded-xl border border-slate-200 bg-slate-50 p-3 transition-all';
+        matchCard.innerHTML = `
+          <p class="text-xs text-slate-600">
+            Student ID <strong>#${escapeHtml(cleaned)}</strong> is not listed on the pre-loaded roster yet—you can still submit your project.
+          </p>
+        `;
+        matchCard.classList.remove('hidden');
+      }
+    }
+
+    function selectProcess(proc) {
+      formState.process = proc;
+      formState.machine = '';
+      document.getElementById('error-process').classList.add('hidden');
+
+      const card3d = document.getElementById('process-card-3d');
+      const cardLaser = document.getElementById('process-card-laser');
+      const headerBanner = document.getElementById('form-header-banner');
+      const processPill = document.getElementById('process-pill-header');
+      const stepper3Label = document.getElementById('stepper-3-label');
+
+      if (proc === '3D printing') {
+        card3d.className = 'text-left rounded-2xl border-2 border-indigo-600 bg-indigo-50/50 p-4 transition-all flex items-start gap-3.5 ring-2 ring-indigo-500/20';
+        cardLaser.className = 'text-left rounded-2xl border-2 border-slate-200 hover:border-amber-500 p-4 transition-all flex items-start gap-3.5 group';
+        headerBanner.className = 'bg-indigo-950 text-white px-5 sm:px-6 py-4 transition-colors duration-300';
+        processPill.textContent = '3D Printing';
+        processPill.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-400 text-slate-950';
+        stepper3Label.textContent = '3. File upload & Reminders';
+      } else {
+        cardLaser.className = 'text-left rounded-2xl border-2 border-amber-500 bg-amber-50/50 p-4 transition-all flex items-start gap-3.5 ring-2 ring-amber-500/20';
+        card3d.className = 'text-left rounded-2xl border-2 border-slate-200 hover:border-indigo-400 p-4 transition-all flex items-start gap-3.5 group';
+        headerBanner.className = 'bg-amber-950 text-white px-5 sm:px-6 py-4 transition-colors duration-300';
+        processPill.textContent = 'Laser Cutting';
+        processPill.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-amber-400 text-slate-950';
+        stepper3Label.textContent = '3. Safety & Rules';
+      }
+    }
+
+    function updateStepperUI(stepNum) {
+      const badge = document.getElementById('step-badge');
+      const titles = {
+        1: 'Step 1 of 4 • ID & Process',
+        2: 'Step 2 of 4 • Machine & Details',
+        3: formState.process === '3D printing'
+          ? 'Step 3 of 4 • File upload & Reminders'
+          : 'Step 3 of 4 • Safety & Rules',
+        4: 'Step 4 of 4 • Confirmed'
+      };
+      badge.textContent = titles[stepNum] || '';
+
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById(`stepper-${i}`);
+        if (!el) continue;
+        const bar = el.querySelector('div');
+        const label = el.querySelector('span');
+        if (i <= stepNum) {
+          bar.className = formState.process === 'Laser cutting'
+            ? 'h-1.5 rounded-full bg-amber-400'
+            : 'h-1.5 rounded-full bg-indigo-400';
+          label.className = 'text-white truncate';
+        } else {
+          bar.className = 'h-1.5 rounded-full bg-white/20';
+          label.className = 'text-slate-300 truncate';
+        }
+      }
+    }
+
+    function showFormPanel(panelId) {
+      ['step-1-panel', 'step-2-panel', 'step-3a-panel', 'step-3b-panel', 'step-4-panel'].forEach((id) => {
+        document.getElementById(id).classList.toggle('hidden', id !== panelId);
+      });
+    }
+
+    function goToStep1() {
+      updateStepperUI(1);
+      showFormPanel('step-1-panel');
+    }
+
+    function goToStep2() {
+      let valid = true;
+      if (!formState.studentId) {
+        document.getElementById('error-student-id').classList.remove('hidden');
+        valid = false;
+      }
+      if (!formState.process) {
+        document.getElementById('error-process').classList.remove('hidden');
+        valid = false;
+      }
+      if (!valid) return;
+
+      const grid3d = document.getElementById('machine-grid-3d');
+      const gridLaser = document.getElementById('machine-grid-laser');
+      const step2FilamentSec = document.getElementById('step2-3d-filament-section');
+      const step2NextBtn = document.getElementById('step2-next-btn');
+
+      if (formState.process === '3D printing') {
+        grid3d.classList.remove('hidden');
+        gridLaser.classList.add('hidden');
+        gridLaser.classList.remove('grid');
+        step2FilamentSec.classList.remove('hidden');
+        step2NextBtn.innerHTML = `
+          Continue to File upload &amp; Reminders
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        `;
+        step2NextBtn.className = 'px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2';
+      } else {
+        grid3d.classList.add('hidden');
+        gridLaser.classList.remove('hidden');
+        gridLaser.classList.add('grid');
+        step2FilamentSec.classList.add('hidden');
+        step2NextBtn.innerHTML = `
+          Continue to Safety &amp; Rules
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        `;
+        step2NextBtn.className = 'px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2';
+      }
+
+      refreshMachineSelectionUI();
+      updateStepperUI(2);
+      showFormPanel('step-2-panel');
+    }
+
+    // =========================================================================
+    // STEP 2: MACHINE & DETAILS (MULTI-MATERIAL & NUMERIC FILAMENT VALIDATION)
+    // =========================================================================
+    function selectMachine(machine) {
+      formState.machine = machine;
+      document.getElementById('error-machine').classList.add('hidden');
+      refreshMachineSelectionUI();
+    }
+
+    function refreshMachineSelectionUI() {
+      const isLaser = formState.process === 'Laser cutting';
+      document.querySelectorAll('.machine-option-btn').forEach((btn) => {
+        const m = btn.getAttribute('data-machine');
+        const selected = m === formState.machine;
+        if (selected) {
+          btn.className = isLaser
+            ? 'machine-option-btn rounded-xl border-2 border-amber-500 bg-amber-50/70 p-3.5 text-left ring-2 ring-amber-500/20 transition'
+            : 'machine-option-btn rounded-xl border-2 border-indigo-600 bg-indigo-50/70 p-3.5 text-left ring-2 ring-indigo-500/20 transition';
+        } else {
+          btn.className = 'machine-option-btn rounded-xl border-2 border-slate-200 p-3.5 text-left hover:border-slate-400 transition';
+        }
+      });
+    }
+
+    function setDuration(val) {
+      formState.duration = val;
+      const input = document.getElementById('duration-input');
+      if (input) input.value = val;
+      document.getElementById('error-duration').classList.add('hidden');
+      highlightDurationChip(val);
+    }
+
+    function handleDurationInput(val) {
+      formState.duration = (val || '').trim();
+      document.getElementById('error-duration').classList.add('hidden');
+      highlightDurationChip(formState.duration);
+    }
+
+    function highlightDurationChip(val) {
+      document.querySelectorAll('.dur-chip').forEach((chip) => {
+        const match = chip.getAttribute('data-dur') === val;
+        if (match) {
+          chip.className = 'dur-chip px-3 py-1.5 rounded-lg border border-indigo-600 bg-indigo-600 text-xs font-bold text-white transition';
+        } else {
+          chip.className = 'dur-chip px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition';
+        }
+      });
+    }
+
+    function parseMaterialsList(str) {
+      return String(str || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+
+    function toggleMaterialChip(mat) {
+      const input = document.getElementById('filament-input');
+      const items = parseMaterialsList(input.value);
+      const existingIndex = items.findIndex((x) => x.toLowerCase() === mat.toLowerCase());
+
+      if (existingIndex >= 0) {
+        items.splice(existingIndex, 1);
+      } else {
+        items.push(mat);
+      }
+
+      input.value = items.join(', ');
+      formState.filament = input.value;
+      document.getElementById('error-filament').classList.add('hidden');
+      syncMaterialChipsUI();
+    }
+
+    function focusCustomMaterial() {
+      const input = document.getElementById('filament-input');
+      const current = (input.value || '').trim();
+      if (current && !current.endsWith(',')) {
+        input.value = current + ', ';
+      }
+      input.focus();
+    }
+
+    function handleFilamentInput(val) {
+      formState.filament = (val || '').trim();
+      document.getElementById('error-filament').classList.add('hidden');
+      syncMaterialChipsUI();
+    }
+
+    function syncMaterialChipsUI() {
+      const selectedLower = parseMaterialsList(document.getElementById('filament-input').value).map((s) =>
+        s.toLowerCase()
+      );
+      document.querySelectorAll('.mat-chip').forEach((chip) => {
+        const mat = chip.getAttribute('data-mat');
+        const check = chip.querySelector('.mat-check');
+        const isSelected = selectedLower.includes(mat.toLowerCase());
+        if (isSelected) {
+          chip.className = 'mat-chip px-3.5 py-1.5 rounded-lg border border-indigo-600 bg-indigo-600 text-xs font-bold text-white transition flex items-center gap-1.5';
+          if (check) check.classList.remove('hidden');
+        } else {
+          chip.className = 'mat-chip px-3.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition flex items-center gap-1.5';
+          if (check) check.classList.add('hidden');
+        }
+      });
+    }
+
+    function validateFilamentAmountInput() {
+      const input = document.getElementById('filament-amount-input');
+      const error = document.getElementById('error-filament-amount');
+      const raw = (input.value || '').trim();
+
+      if (!raw) {
+        formState.filamentAmount = '';
+        error.classList.add('hidden');
+        return false;
+      }
+
+      const num = Number(raw);
+      if (!Number.isFinite(num) || num <= 0) {
+        error.classList.remove('hidden');
+        return false;
+      }
+
+      formState.filamentAmount = raw;
+      error.classList.add('hidden');
+      return true;
+    }
+
+    function goToStep3() {
+      let valid = true;
+
+      if (!formState.machine) {
+        document.getElementById('error-machine').classList.remove('hidden');
+        valid = false;
+      }
+
+      const durVal = (document.getElementById('duration-input').value || '').trim();
+      formState.duration = durVal;
+      if (!durVal) {
+        document.getElementById('error-duration').classList.remove('hidden');
+        valid = false;
+      }
+
+      if (formState.process === '3D printing') {
+        const matVal = (document.getElementById('filament-input').value || '').trim();
+        formState.filament = matVal;
+        if (!matVal) {
+          document.getElementById('error-filament').classList.remove('hidden');
+          valid = false;
+        }
+
+        const amountValid = validateFilamentAmountInput();
+        if (!amountValid) {
+          document.getElementById('error-filament-amount').classList.remove('hidden');
+          valid = false;
+        }
+      }
+
+      const descVal = (document.getElementById('description-input').value || '').trim();
+      formState.description = descVal;
+      if (!descVal) {
+        document.getElementById('error-description').classList.remove('hidden');
+        valid = false;
+      } else {
+        document.getElementById('error-description').classList.add('hidden');
+      }
+
+      if (!valid) return;
+
+      updateStepperUI(3);
+      if (formState.process === '3D printing') {
+        document.getElementById('step3a-summary-text').textContent =
+          `Machine: ${formState.machine} • Material: ${formState.filament} (${formState.filamentAmount}g)`;
+        showFormPanel('step-3a-panel');
+      } else {
+        document.getElementById('step3b-machine-subtitle').textContent =
+          `Selected Machine: ${formState.machine}`;
+        document.getElementById('laser-care-statement').textContent =
+          `The ${formState.machine} is a machine to use with care and respect.`;
+        document.getElementById('submit-laser-btn').innerHTML = `
+          Join ${escapeHtml(formState.machine)} Laser Queue
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        `;
+        showFormPanel('step-3b-panel');
+      }
+    }
+
+    // =========================================================================
+    // STEP 3A & 3B: FILE UPLOAD, RULES & QUEUE SUBMISSION
+    // =========================================================================
+    function setupDragAndDrop() {
+      const dz = document.getElementById('file-dropzone');
+      if (!dz) return;
+
+      ['dragenter', 'dragover'].forEach((evtName) => {
+        dz.addEventListener(evtName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dz.classList.add('border-indigo-500', 'bg-indigo-50/70');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach((evtName) => {
+        dz.addEventListener(evtName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dz.classList.remove('border-indigo-500', 'bg-indigo-50/70');
+        });
+      });
+
+      dz.addEventListener('drop', (e) => {
+        const files = e.dataTransfer && e.dataTransfer.files;
+        if (files && files[0]) {
+          processUploadedFile(files[0]);
+        }
+      });
+    }
+
+    function handleFileSelect(e) {
+      const files = e.target && e.target.files;
+      if (files && files[0]) {
+        processUploadedFile(files[0]);
+      }
+    }
+
+    function processUploadedFile(file) {
+      const maxBytes = 50 * 1024 * 1024;
+      if (file.size > maxBytes) {
+        showToast('File exceeds the 50 MB size limit.', 'error');
+        return;
+      }
+
+      const blobUrl = URL.createObjectURL(file);
+      formState.fileName = file.name;
+      formState.fileSize = formatFileSize(file.size);
+      formState.fileBlobUrl = blobUrl;
+      formState.fileDataUrl = '';
+
+      if (file.size <= 700 * 1024) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          formState.fileDataUrl = evt.target?.result || '';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      document.getElementById('uploaded-file-name').textContent = formState.fileName;
+      document.getElementById('uploaded-file-size').textContent = `${formState.fileSize} • Sliced file attached`;
+      document.getElementById('file-empty-state').classList.add('hidden');
+      document.getElementById('file-selected-state').classList.remove('hidden');
+    }
+
+    function removeUploadedFile(e) {
+      if (e) e.stopPropagation();
+      formState.fileName = '';
+      formState.fileSize = '';
+      formState.fileBlobUrl = '';
+      formState.fileDataUrl = '';
+      const input = document.getElementById('print-file-input');
+      if (input) input.value = '';
+      document.getElementById('file-selected-state').classList.add('hidden');
+      document.getElementById('file-empty-state').classList.remove('hidden');
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function submit3DPrintForm() {
+      const checked = document.getElementById('rules-3d-checkbox').checked;
+      if (!checked) {
+        document.getElementById('error-3d-rules').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('error-3d-rules').classList.add('hidden');
+      finalizeQueueSubmission();
+    }
+
+    function submitLaserForm() {
+      const agreed = document.getElementById('laser-agree-checkbox').checked;
+      if (!agreed) {
+        document.getElementById('error-laser-rules').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('error-laser-rules').classList.add('hidden');
+      finalizeQueueSubmission();
+    }
+
+    async function finalizeQueueSubmission() {
+      const entryId = 'job-' + Date.now();
+      if (formState.fileBlobUrl) {
+        sessionBlobRegistry[entryId] = {
+          url: formState.fileBlobUrl,
+          name: formState.fileName
+        };
+      }
+
+      const studentRec = formState.studentRecord;
+      const fullName = studentRec
+        ? `${studentRec.firstName} ${studentRec.lastName}`
+        : `Student #${formState.studentId}`;
+
+      const now = new Date();
+      const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const maxOrder = queueItems.reduce((max, item) => Math.max(max, item.order ?? 0), Date.now());
+
+      const newEntry = {
+        id: entryId,
+        order: maxOrder + 1,
+        studentId: formState.studentId,
+        studentName: fullName,
+        ftcTeam: studentRec ? studentRec.ftcTeam : '',
+        frcTeam: studentRec ? studentRec.frcTeam : '',
+        process: formState.process,
+        machine: formState.machine,
+        duration: formState.duration,
+        filament: formState.process === '3D printing' ? formState.filament : '',
+        filamentAmount: formState.process === '3D printing' ? formState.filamentAmount : '',
+        description: formState.description,
+        fileName: formState.process === '3D printing' ? formState.fileName : '',
+        fileSize: formState.process === '3D printing' ? formState.fileSize : '',
+        fileDataUrl: formState.process === '3D printing' ? formState.fileDataUrl : '',
+        status: 'Waiting',
+        timestamp,
+        isSample: false
+      };
+
+      queueItems.push(newEntry);
+      saveToLocalStorage();
+      renderAllViews();
+
+      if (db && currentUser) {
+        try {
+          const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', entryId);
+          await setDoc(itemRef, newEntry);
+        } catch (err) {
+          console.error('Error saving queue submission to cloud:', err);
+          showToast('Saved locally, but cloud sync failed.', 'error');
+        }
+      }
+
+      // Populate Step 4 Confirmation Ticket
+      const activeList = queueItems.filter((i) => i.status !== 'Completed');
+      const pos = activeList.findIndex((i) => i.id === entryId) + 1;
+
+      document.getElementById('confirm-position').textContent = `#${pos > 0 ? pos : activeList.length}`;
+      document.getElementById('confirm-student').textContent = `${fullName} (#${formState.studentId})`;
+      document.getElementById('confirm-machine').textContent = `${formState.process} • ${formState.machine}`;
+      document.getElementById('confirm-duration').textContent = formState.duration;
+
+      const filRow = document.getElementById('confirm-filament-row');
+      if (formState.process === '3D printing') {
+        filRow.classList.remove('hidden');
+        document.getElementById('confirm-filament').textContent = `${formState.filament} (${formState.filamentAmount}g)`;
+      } else {
+        filRow.classList.add('hidden');
+      }
+
+      const fileRow = document.getElementById('confirm-file-row');
+      if (formState.process === '3D printing' && formState.fileName) {
+        fileRow.classList.remove('hidden');
+        document.getElementById('confirm-file').textContent = formState.fileName;
+      } else {
+        fileRow.classList.add('hidden');
+      }
+
+      updateStepperUI(4);
+      showFormPanel('step-4-panel');
+      showToast('Added to the Maker’s Corner Queue!', 'success');
+    }
+
+    function resetForm() {
+      formState = {
+        studentId: '',
+        studentRecord: null,
+        process: '',
+        machine: '',
+        duration: '',
+        filament: '',
+        filamentAmount: '',
+        description: '',
+        fileName: '',
+        fileSize: '',
+        fileBlobUrl: '',
+        fileDataUrl: ''
+      };
+
+      document.getElementById('student-id-input').value = '';
+      document.getElementById('roster-match-card').classList.add('hidden');
+      document.getElementById('duration-input').value = '';
+      document.getElementById('filament-input').value = '';
+      document.getElementById('filament-amount-input').value = '';
+      document.getElementById('description-input').value = '';
+      document.getElementById('rules-3d-checkbox').checked = false;
+      document.getElementById('laser-agree-checkbox').checked = false;
+      removeUploadedFile();
+
+      document.getElementById('process-card-3d').className =
+        'text-left rounded-2xl border-2 border-slate-200 hover:border-indigo-400 p-4 transition-all flex items-start gap-3.5 group';
+      document.getElementById('process-card-laser').className =
+        'text-left rounded-2xl border-2 border-slate-200 hover:border-amber-500 p-4 transition-all flex items-start gap-3.5 group';
+      document.getElementById('form-header-banner').className =
+        'bg-slate-900 text-white px-5 sm:px-6 py-4 transition-colors duration-300';
+      document.getElementById('process-pill-header').classList.add('hidden');
+      document.getElementById('stepper-3-label').textContent = '3. Details & Rules';
+
+      highlightDurationChip('');
+      syncMaterialChipsUI();
+      refreshMachineSelectionUI();
+      goToStep1();
+    }
+
+    // =========================================================================
+    // LIVE CLASSROOM QUEUE RENDERING & ACTIONS (DARK THEME)
+    // =========================================================================
+    function setStatusFilter(status) {
+      currentStatusFilter = status;
+      const options = ['active', 'Waiting', 'In Progress', 'Completed'];
+      options.forEach((opt) => {
+        const btn = document.getElementById(`status-filter-${opt}`);
+        if (!btn) return;
+        if (opt === status) {
+          btn.className = 'py-1.5 px-2 rounded-lg bg-indigo-600 text-white shadow-xs transition';
+        } else {
+          btn.className = 'py-1.5 px-2 rounded-lg text-slate-400 hover:text-white transition';
+        }
+      });
+      renderQueue();
+    }
+
+    function setProcessFilter(proc) {
+      currentProcessFilter = proc;
+      ['all', '3D printing', 'Laser cutting'].forEach((opt) => {
+        const btn = document.getElementById(`proc-filter-${opt}`);
+        if (!btn) return;
+        if (opt === proc) {
+          btn.className = 'px-2.5 py-1 rounded-lg bg-slate-700 text-white transition';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition';
+        }
+      });
+      renderQueue();
+    }
+
+    function renderQueue() {
+      const container = document.getElementById('queue-list-container');
+      const countBadge = document.getElementById('live-queue-count');
+      if (!container) return;
+
+      const searchTerm = (document.getElementById('queue-search-input')?.value || '').trim().toLowerCase();
+
+      // Active count excludes Completed
+      const activeCount = queueItems.filter((i) => i.status !== 'Completed').length;
+      if (countBadge) countBadge.textContent = activeCount;
+
+      const filtered = queueItems.filter((item) => {
+        if (currentStatusFilter === 'active' && item.status === 'Completed') return false;
+        if (currentStatusFilter !== 'active' && item.status !== currentStatusFilter) return false;
+        if (currentProcessFilter !== 'all' && item.process !== currentProcessFilter) return false;
+
+        if (searchTerm) {
+          const hay = `${item.studentId} ${item.studentName} ${item.machine} ${item.process} ${item.description}`.toLowerCase();
+          if (!hay.includes(searchTerm)) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="rounded-2xl border border-dashed border-slate-700 p-8 text-center space-y-1.5">
+            <p class="text-sm font-bold text-slate-300">No jobs match this view</p>
+            <p class="text-xs text-slate-500">
+              ${currentStatusFilter === 'active' ? 'Completed jobs are hidden automatically. Switch to "Completed" to view past jobs.' : 'Try adjusting your status or process filter.'}
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      const managerAllowed = canManageQueue();
+
+      container.innerHTML = filtered.map((item) => {
+        const overallIdx = queueItems.findIndex((q) => q.id === item.id);
+        const activePos = queueItems.filter((q) => q.status !== 'Completed').findIndex((q) => q.id === item.id) + 1;
+        const isLaser = item.process === 'Laser cutting';
+        const borderAccent = isLaser ? 'border-l-4 border-l-amber-500' : 'border-l-4 border-l-indigo-500';
+
+        const statusBadgeStyles = {
+          'Waiting': 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+          'In Progress': 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+          'Completed': 'bg-slate-700 text-slate-300 border-slate-600'
+        };
+        const statusCls = statusBadgeStyles[item.status] || statusBadgeStyles['Waiting'];
+
+        // Live-resolve roster name if student was added after submission
+        const rosterMatch = rosterList.find((r) => String(r.id).trim() === String(item.studentId).trim());
+        const displayName = rosterMatch ? `${rosterMatch.firstName} ${rosterMatch.lastName}` : item.studentName;
+        const ftc = rosterMatch ? rosterMatch.ftcTeam : item.ftcTeam;
+        const frc = rosterMatch ? rosterMatch.frcTeam : item.frcTeam;
+        const teams = [ftc, frc].filter(Boolean).join(' • ');
+        const hasDownload = Boolean(sessionBlobRegistry[item.id] || item.fileDataUrl);
+
+        return `
+          <div class="rounded-xl border border-slate-700/80 ${borderAccent} bg-slate-800/80 hover:bg-slate-800 p-3.5 sm:p-4 shadow-sm space-y-2.5 transition">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5 min-w-0">
+                <span class="px-2 py-0.5 rounded-lg text-xs font-extrabold bg-slate-950 text-slate-200 border border-slate-700 shrink-0">
+                  ${item.status === 'Completed' ? 'Done' : `#${activePos}`}
+                </span>
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-sm font-extrabold text-white truncate">${escapeHtml(displayName)}</span>
+                    <span class="text-[11px] font-bold text-slate-400">#${escapeHtml(item.studentId)}</span>
+                  </div>
+                  ${teams ? `<div class="text-[11px] font-semibold text-indigo-300 mt-0.5">${escapeHtml(teams)}</div>` : ''}
+                </div>
+              </div>
+
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border shrink-0 ${statusCls}">
+                ${escapeHtml(item.status)}
+              </span>
+            </div>
+
+            <!-- Machine & Details Pills -->
+            <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
+              <span class="px-2 py-0.5 rounded-md ${isLaser ? 'bg-amber-500/20 text-amber-300' : 'bg-indigo-500/20 text-indigo-300'}">
+                ${escapeHtml(item.process)} • ${escapeHtml(item.machine)}
+              </span>
+              <span class="px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-700">
+                ⏱ ${escapeHtml(item.duration)}
+              </span>
+              ${item.filament ? `
+                <span class="px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-700">
+                  🧵 ${escapeHtml(item.filament)}${item.filamentAmount ? ` (${escapeHtml(item.filamentAmount)}g)` : ''}
+                </span>
+              ` : ''}
+              <span class="text-slate-500 ml-auto">${escapeHtml(item.timestamp || '')}</span>
+            </div>
+
+            <!-- Project Description -->
+            <p class="text-xs text-slate-300 leading-relaxed">
+              ${escapeHtml(item.description)}
+            </p>
+
+            <!-- Attached 3D File Bar -->
+            ${item.fileName ? `
+              <div class="flex items-center justify-between gap-2 rounded-lg bg-slate-900/90 border border-slate-700/80 px-3 py-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span class="text-xs font-semibold text-slate-200 truncate">${escapeHtml(item.fileName)}</span>
+                  ${item.fileSize ? `<span class="text-[10px] text-slate-500 shrink-0">(${escapeHtml(item.fileSize)})</span>` : ''}
+                </div>
+                ${hasDownload ? `
+                  <button
+                    type="button"
+                    onclick="downloadEntryFile('${item.id}')"
+                    class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white shrink-0 transition"
+                  >
+                    Download
+                  </button>
+                ` : `
+                  <span class="text-[10px] font-semibold text-slate-500 shrink-0">Attached</span>
+                `}
+              </div>
+            ` : ''}
+
+            <!-- Manager / Teacher Controls -->
+            ${managerAllowed ? `
+              <div class="pt-2 border-t border-slate-700/80 flex flex-wrap items-center justify-between gap-2">
+                <select
+                  aria-label="Update job status"
+                  onchange="updateEntryStatus('${item.id}', this.value)"
+                  class="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1 text-xs font-bold text-white focus:outline-none focus:border-indigo-400"
+                >
+                  <option value="Waiting" ${item.status === 'Waiting' ? 'selected' : ''}>Waiting</option>
+                  <option value="In Progress" ${item.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                  <option value="Completed" ${item.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                </select>
+
+                <div class="flex items-center gap-1">
+                  <button
+                    type="button"
+                    title="Move Up"
+                    onclick="moveEntry('${item.id}', -1)"
+                    ${overallIdx === 0 ? 'disabled' : ''}
+                    class="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-700 text-slate-300 disabled:opacity-30 border border-slate-700 transition"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    title="Move Down"
+                    onclick="moveEntry('${item.id}', 1)"
+                    ${overallIdx === queueItems.length - 1 ? 'disabled' : ''}
+                    class="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-700 text-slate-300 disabled:opacity-30 border border-slate-700 transition"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
+                    title="Delete Entry"
+                    onclick="deleteEntry('${item.id}')"
+                    class="px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold border border-rose-500/30 transition"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function updateEntryStatus(id, newStatus) {
+      if (!canManageQueue()) return;
+      const item = queueItems.find((i) => i.id === id);
+      if (!item) return;
+      item.status = newStatus;
+      saveToLocalStorage();
+      renderAllViews();
+
+      if (db && currentUser) {
+        try {
+          const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id);
+          await setDoc(itemRef, { status: newStatus }, { merge: true });
+        } catch (err) {
+          console.error('Error updating status:', err);
+        }
+      }
+
+      showToast(`Updated ${item.studentName} to "${newStatus}".`, 'info');
+    }
+
+    async function moveEntry(id, direction) {
+      if (!canManageQueue()) return;
+      const idx = queueItems.findIndex((i) => i.id === id);
+      if (idx < 0) return;
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= queueItems.length) return;
+
+      const currentItem = queueItems[idx];
+      const swapItem = queueItems[targetIdx];
+
+      const currentOrder = currentItem.order ?? idx;
+      const swapOrder = swapItem.order ?? targetIdx;
+      currentItem.order = swapOrder;
+      swapItem.order = currentOrder;
+
+      queueItems[idx] = swapItem;
+      queueItems[targetIdx] = currentItem;
+      saveToLocalStorage();
+      renderAllViews();
+
+      if (db && currentUser) {
+        try {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', currentItem.id), { order: currentItem.order }, { merge: true });
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', swapItem.id), { order: swapItem.order }, { merge: true });
+        } catch (err) {
+          console.error('Error reordering queue:', err);
+        }
+      }
+    }
+
+    async function deleteEntry(id) {
+      if (!canManageQueue()) return;
+      queueItems = queueItems.filter((i) => i.id !== id);
+      saveToLocalStorage();
+      renderAllViews();
+
+      if (db && currentUser) {
+        try {
+          await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id));
+        } catch (err) {
+          console.error('Error deleting queue entry:', err);
+        }
+      }
+
+      showToast('Queue entry removed.', 'info');
+    }
+
+    function downloadEntryFile(id) {
+      const item = queueItems.find((i) => i.id === id);
+      const record = sessionBlobRegistry[id];
+      const downloadUrl = record ? record.url : (item && item.fileDataUrl ? item.fileDataUrl : '');
+      const fileName = record ? record.name : (item ? item.fileName : '3d_print_file');
+
+      if (!downloadUrl) {
+        showToast('Large files (>700 KB) can only be downloaded on the computer where they were uploaded.', 'info');
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // =========================================================================
+    // SUBMISSIONS TRACKER TAB & TEACHER-ONLY EXPORTS
+    // =========================================================================
+    function parseDurationToHours(durationStr) {
+      const s = String(durationStr || '').toLowerCase().trim();
+      if (!s) return 0;
+
+      let totalHours = 0;
+      const hrMatch = s.match(/(\d+(?:\.\d+)?)\s*(?:hr|hrs|hour|hours)/);
+      const minMatch = s.match(/(\d+(?:\.\d+)?)\s*(?:min|mins|minute|minutes)/);
+
+      if (hrMatch) totalHours += parseFloat(hrMatch[1]);
+      if (minMatch) totalHours += parseFloat(minMatch[1]) / 60;
+
+      if (!hrMatch && !minMatch) {
+        const plainNum = parseFloat(s);
+        if (Number.isFinite(plainNum)) {
+          totalHours += plainNum >= 10 ? plainNum / 60 : plainNum;
+        }
+      }
+      return totalHours;
+    }
+
+    function renderSubmissionsTab() {
+      const tbody = document.getElementById('submissions-table-body');
+      if (!tbody) return;
+
+      // Summary metrics across all submissions
+      const total = queueItems.length;
+      const waiting = queueItems.filter((i) => i.status === 'Waiting').length;
+      const inProgress = queueItems.filter((i) => i.status === 'In Progress').length;
+      const completed = queueItems.filter((i) => i.status === 'Completed').length;
+
+      let totalFilamentGrams = 0;
+      let totalPrintHours = 0;
+
+      queueItems.forEach((item) => {
+        if (item.process === '3D printing') {
+          const grams = parseFloat(item.filamentAmount);
+          if (Number.isFinite(grams) && grams > 0) {
+            totalFilamentGrams += grams;
+          }
+          totalPrintHours += parseDurationToHours(item.duration);
+        }
+      });
+
+      document.getElementById('metric-total').textContent = total;
+      document.getElementById('metric-waiting').textContent = waiting;
+      document.getElementById('metric-inprogress').textContent = inProgress;
+      document.getElementById('metric-completed').textContent = completed;
+      document.getElementById('metric-filament').textContent = `${Math.round(totalFilamentGrams)} g`;
+      document.getElementById('metric-hours').textContent = `${totalPrintHours.toFixed(1)} hrs`;
+
+      const searchTerm = (document.getElementById('sub-search-input')?.value || '').trim().toLowerCase();
+      const statusFilter = document.getElementById('sub-filter-status')?.value || 'all';
+      const processFilter = document.getElementById('sub-filter-process')?.value || 'all';
+      const machineFilter = document.getElementById('sub-filter-machine')?.value || 'all';
+
+      const filtered = queueItems.filter((item) => {
+        if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+        if (processFilter !== 'all' && item.process !== processFilter) return false;
+        if (machineFilter !== 'all' && item.machine !== machineFilter) return false;
+        if (searchTerm) {
+          const hay = `${item.studentId} ${item.studentName} ${item.ftcTeam} ${item.frcTeam} ${item.machine} ${item.filament} ${item.description}`.toLowerCase();
+          if (!hay.includes(searchTerm)) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="py-8 px-4 text-center text-slate-500 font-medium">
+              No submissions match your current filters.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const managerAllowed = canManageQueue();
+
+      tbody.innerHTML = filtered.map((item, idx) => {
+        const rosterMatch = rosterList.find((r) => String(r.id).trim() === String(item.studentId).trim());
+        const displayName = rosterMatch ? `${rosterMatch.firstName} ${rosterMatch.lastName}` : item.studentName;
+        const ftc = rosterMatch ? rosterMatch.ftcTeam : item.ftcTeam;
+        const frc = rosterMatch ? rosterMatch.frcTeam : item.frcTeam;
+        const isLaser = item.process === 'Laser cutting';
+
+        const statusBadgeMap = {
+          'Waiting': 'bg-amber-50 text-amber-800 border-amber-200',
+          'In Progress': 'bg-indigo-50 text-indigo-800 border-indigo-200',
+          'Completed': 'bg-emerald-50 text-emerald-800 border-emerald-200'
+        };
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-extrabold text-slate-500">${idx + 1}</td>
+            <td class="py-3 px-4 text-slate-600 whitespace-nowrap">${escapeHtml(item.timestamp || '—')}</td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              <div class="font-extrabold text-slate-900">${escapeHtml(displayName)}</div>
+              <div class="text-[11px] font-semibold text-slate-500">ID #${escapeHtml(item.studentId)}</div>
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex flex-wrap gap-1">
+                ${ftc ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">FTC: ${escapeHtml(ftc)}</span>` : ''}
+                ${frc ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">FRC: ${escapeHtml(frc)}</span>` : ''}
+                ${!ftc && !frc ? '<span class="text-slate-400">—</span>' : ''}
+              </div>
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${isLaser ? 'bg-amber-100 text-amber-900' : 'bg-indigo-100 text-indigo-900'}">
+                ${escapeHtml(item.process)} • ${escapeHtml(item.machine)}
+              </span>
+            </td>
+            <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap">${escapeHtml(item.duration)}</td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              ${item.filament
+                ? `<span class="font-bold text-slate-800">${escapeHtml(item.filament)}</span>${item.filamentAmount ? ` <span class="text-slate-500">(${escapeHtml(item.filamentAmount)}g)</span>` : ''}`
+                : '<span class="text-slate-400">N/A</span>'}
+            </td>
+            <td class="py-3 px-4 max-w-xs">
+              <p class="text-slate-700 line-clamp-2">${escapeHtml(item.description)}</p>
+              ${item.fileName ? `<div class="text-[11px] font-bold text-indigo-600 mt-0.5 truncate">📎 ${escapeHtml(item.fileName)}</div>` : ''}
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              ${managerAllowed ? `
+                <select
+                  aria-label="Submission status"
+                  onchange="updateEntryStatus('${item.id}', this.value)"
+                  class="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="Waiting" ${item.status === 'Waiting' ? 'selected' : ''}>Waiting</option>
+                  <option value="In Progress" ${item.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                  <option value="Completed" ${item.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                </select>
+              ` : `
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border ${statusBadgeMap[item.status] || statusBadgeMap['Waiting']}">
+                  ${escapeHtml(item.status)}
+                </span>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportQueueCsv() {
+      if (!canExportData()) {
+        showToast('Exporting CSV is restricted to Teacher Mode.', 'error');
+        return;
+      }
+
+      const headers = [
+        'Queue #',
+        'Time',
+        'Student ID',
+        'Student Name',
+        'FTC Team',
+        'FRC Team',
+        'Process',
+        'Machine',
+        'Duration',
+        'Materials',
+        'Filament (g)',
+        'Description',
+        '3D File',
+        'Status'
+      ];
+
+      const rows = queueItems.map((item, idx) => {
+        const rosterMatch = rosterList.find((r) => String(r.id).trim() === String(item.studentId).trim());
+        const displayName = rosterMatch ? `${rosterMatch.firstName} ${rosterMatch.lastName}` : item.studentName;
+        const ftc = rosterMatch ? rosterMatch.ftcTeam : item.ftcTeam;
+        const frc = rosterMatch ? rosterMatch.frcTeam : item.frcTeam;
+
+        return [
+          idx + 1,
+          item.timestamp || '',
+          item.studentId,
+          displayName,
+          ftc || '',
+          frc || '',
+          item.process,
+          item.machine,
+          item.duration,
+          item.filament || '',
+          item.filamentAmount || '',
+          item.description,
+          item.fileName || '',
+          item.status
+        ].map(csvEscape).join(',');
+      });
+
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Makers_Corner_Submissions_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Submissions CSV downloaded.', 'success');
+    }
+
+    function copySubmissionsForSheets() {
+      if (!canExportData()) {
+        showToast('Copying for Google Sheets is restricted to Teacher Mode.', 'error');
+        return;
+      }
+
+      const headers = [
+        'Queue #',
+        'Time',
+        'Student ID',
+        'Student Name',
+        'FTC Team',
+        'FRC Team',
+        'Process',
+        'Machine',
+        'Duration',
+        'Materials',
+        'Filament (g)',
+        'Description',
+        '3D File',
+        'Status'
+      ];
+
+      const lines = [headers.join('\t')];
+      queueItems.forEach((item, idx) => {
+        const rosterMatch = rosterList.find((r) => String(r.id).trim() === String(item.studentId).trim());
+        const displayName = rosterMatch ? `${rosterMatch.firstName} ${rosterMatch.lastName}` : item.studentName;
+        const ftc = rosterMatch ? rosterMatch.ftcTeam : item.ftcTeam;
+        const frc = rosterMatch ? rosterMatch.frcTeam : item.frcTeam;
+
+        const cols = [
+          idx + 1,
+          item.timestamp || '',
+          item.studentId,
+          displayName,
+          ftc || '',
+          frc || '',
+          item.process,
+          item.machine,
+          item.duration,
+          item.filament || '',
+          item.filamentAmount || '',
+          String(item.description || '').replace(/[\r\n\t]+/g, ' '),
+          item.fileName || '',
+          item.status
+        ];
+        lines.push(cols.join('\t'));
+      });
+
+      const tsvText = lines.join('\n');
+      const textarea = document.createElement('textarea');
+      textarea.value = tsvText;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Copied table! Paste directly into Google Sheets.', 'success');
+      } catch (err) {
+        showToast('Unable to copy automatically.', 'error');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // =========================================================================
+    // CLASSROOM ROSTER TAB (TEACHER-ONLY EDIT & DELETE)
+    // =========================================================================
+    function populateTeamFilterDropdowns() {
+      const ftcSelect = document.getElementById('roster-filter-ftc');
+      const frcSelect = document.getElementById('roster-filter-frc');
+      if (!ftcSelect || !frcSelect) return;
+
+      const currentFtc = ftcSelect.value;
+      const currentFrc = frcSelect.value;
+
+      const ftcTeams = [...new Set(rosterList.map((s) => s.ftcTeam).filter(Boolean))].sort();
+      const frcTeams = [...new Set(rosterList.map((s) => s.frcTeam).filter(Boolean))].sort();
+
+      ftcSelect.innerHTML =
+        '<option value="all">All FTC Teams</option>' +
+        ftcTeams.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+      frcSelect.innerHTML =
+        '<option value="all">All FRC Teams</option>' +
+        frcTeams.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+      if (ftcTeams.includes(currentFtc)) ftcSelect.value = currentFtc;
+      if (frcTeams.includes(currentFrc)) frcSelect.value = currentFrc;
+    }
+
+    function renderRosterTab() {
+      const tbody = document.getElementById('roster-table-body');
+      if (!tbody) return;
+
+      const searchTerm = (document.getElementById('roster-search-input')?.value || '').trim().toLowerCase();
+      const ftcFilter = document.getElementById('roster-filter-ftc')?.value || 'all';
+      const frcFilter = document.getElementById('roster-filter-frc')?.value || 'all';
+
+      const filtered = rosterList.filter((s) => {
+        if (ftcFilter !== 'all' && s.ftcTeam !== ftcFilter) return false;
+        if (frcFilter !== 'all' && s.frcTeam !== frcFilter) return false;
+        if (searchTerm) {
+          const hay = `${s.id} ${s.firstName} ${s.lastName} ${s.ftcTeam} ${s.frcTeam} ${s.notes}`.toLowerCase();
+          if (!hay.includes(searchTerm)) return false;
+        }
+        return true;
+      });
+
+      const editable = canEditRoster();
+      const actionsTh = document.getElementById('roster-actions-th');
+      if (actionsTh) actionsTh.classList.toggle('hidden', !editable);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="${editable ? 8 : 7}" class="py-8 px-4 text-center text-slate-500 font-medium">
+              No students match your search or team filters.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((student) => {
+        const jobCount = queueItems.filter((q) => String(q.studentId).trim() === String(student.id).trim()).length;
+        const isConfirmingDelete = editable && String(pendingDeleteStudentId) === String(student.id);
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-extrabold text-indigo-700 whitespace-nowrap">#${escapeHtml(student.id)}</td>
+            <td class="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">${escapeHtml(student.firstName)}</td>
+            <td class="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">${escapeHtml(student.lastName)}</td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              ${student.ftcTeam ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">${escapeHtml(student.ftcTeam)}</span>` : '<span class="text-slate-400">—</span>'}
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              ${student.frcTeam ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">${escapeHtml(student.frcTeam)}</span>` : '<span class="text-slate-400">—</span>'}
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold ${jobCount > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'}">
+                ${jobCount}
+              </span>
+            </td>
+            <td class="py-3 px-4 min-w-[160px]">
+              ${editable ? `
+                <input
+                  type="text"
+                  value="${escapeHtml(student.notes || '')}"
+                  placeholder="Add note..."
+                  onchange="updateRosterNotes('${escapeHtml(student.id)}', this.value)"
+                  class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+                />
+              ` : `
+                <span class="text-slate-600">${escapeHtml(student.notes || '—')}</span>
+              `}
+            </td>
+            ${editable ? `
+              <td class="py-3 px-4 text-right whitespace-nowrap">
+                ${isConfirmingDelete ? `
+                  <div class="inline-flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onclick="confirmDeleteRosterStudent('${escapeHtml(student.id)}')"
+                      class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-600 hover:bg-rose-700 text-white transition"
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      type="button"
+                      onclick="cancelDeleteRosterStudent()"
+                      class="px-2 py-1 rounded-lg text-[11px] font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ` : `
+                  <button
+                    type="button"
+                    onclick="requestDeleteRosterStudent('${escapeHtml(student.id)}')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition"
+                  >
+                    Delete
+                  </button>
+                `}
+              </td>
+            ` : ''}
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function addRosterStudent(e) {
+      e.preventDefault();
+      if (!canEditRoster()) return;
+
+      const id = (document.getElementById('new-roster-id').value || '').trim();
+      const firstName = (document.getElementById('new-roster-first').value || '').trim();
+      const lastName = (document.getElementById('new-roster-last').value || '').trim();
+      const ftcTeam = (document.getElementById('new-roster-ftc').value || '').trim();
+      const frcTeam = (document.getElementById('new-roster-frc').value || '').trim();
+
+      if (!id || !firstName || !lastName) {
+        showToast('Student ID, First Name, and Last Name are required.', 'error');
+        return;
+      }
+
+      if (rosterList.some((s) => String(s.id).trim() === id)) {
+        showToast(`Student ID #${id} is already in the roster.`, 'error');
+        return;
+      }
+
+      const newStudent = { id, firstName, lastName, ftcTeam, frcTeam, notes: '' };
+      rosterList.push(newStudent);
+
+      document.getElementById('new-roster-id').value = '';
+      document.getElementById('new-roster-first').value = '';
+      document.getElementById('new-roster-last').value = '';
+      document.getElementById('new-roster-ftc').value = '';
+      document.getElementById('new-roster-frc').value = '';
+
+      saveToLocalStorage();
+      populateTeamFilterDropdowns();
+      renderAllViews();
+
+      if (db && currentUser) {
+        try {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'roster_students', id), newStudent);
+        } catch (err) {
+          console.error('Error adding student to cloud roster:', err);
+        }
+      }
+
+      showToast(`Added ${firstName} ${lastName} (#${id}) to roster.`, 'success');
+    }
+
+    async function updateRosterNotes(studentId, notes) {
+      if (!canEditRoster()) return;
+      const student = rosterList.find((s) => String(s.id) === String(studentId));
+      if (!student) return;
+      student.notes = notes;
+      saveToLocalStorage();
+
+      if (db && currentUser) {
+        try {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'roster_students', String(studentId)), { notes }, { merge: true });
+        } catch (err) {
+          console.error('Error updating roster notes:', err);
+        }
+      }
+
+      showToast('Roster note saved.', 'info');
+    }
+
+    function requestDeleteRosterStudent(studentId) {
+      if (!canEditRoster()) return;
+      pendingDeleteStudentId = studentId;
+      renderRosterTab();
+    }
+
+    function cancelDeleteRosterStudent() {
+      pendingDeleteStudentId = null;
+      renderRosterTab();
+    }
+
+    async function confirmDeleteRosterStudent(studentId) {
+      if (!canEditRoster()) return;
+      const target = rosterList.find((s) => String(s.id) === String(studentId));
+      rosterList = rosterList.filter((s) => String(s.id) !== String(studentId));
+      pendingDeleteStudentId = null;
+      saveToLocalStorage();
+      populateTeamFilterDropdowns();
+      renderAllViews();
+
+      if (db && currentUser) {
+        try {
+          await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'roster_students', String(studentId)));
+        } catch (err) {
+          console.error('Error deleting student from cloud roster:', err);
+        }
+      }
+
+      if (target) {
+        showToast(`Removed ${target.firstName} ${target.lastName} from roster.`, 'info');
+      }
+    }
+
+    function handleRosterCsvImport(e) {
+      if (!canEditRoster()) return;
+      const file = e.target && e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        try {
+          const text = evt.target.result || '';
+          const lines = text.split(/\r?\n/).filter((line) => line.trim());
+          if (lines.length < 2) {
+            showToast('CSV file appears empty.', 'error');
+            return;
+          }
+
+          let added = 0;
+          const upsertedStudents = [];
+          for (let i = 1; i < lines.length; i++) {
+            const cols = lines[i].split(',').map((c) => c.replace(/^"|"$/g, '').trim());
+            if (cols.length >= 3 && cols[0] && cols[1] && cols[2]) {
+              const [id, firstName, lastName, ftcTeam = '', frcTeam = '', notes = ''] = cols;
+              const studentObj = { id, firstName, lastName, ftcTeam, frcTeam, notes };
+              const existing = rosterList.find((s) => String(s.id) === id);
+              if (existing) {
+                Object.assign(existing, studentObj);
+              } else {
+                rosterList.push(studentObj);
+                added++;
+              }
+              upsertedStudents.push(studentObj);
+            }
+          }
+
+          saveToLocalStorage();
+          populateTeamFilterDropdowns();
+          renderAllViews();
+
+          if (db && currentUser) {
+            for (const st of upsertedStudents) {
+              await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'roster_students', String(st.id)), st);
+            }
+          }
+
+          showToast(`Roster CSV imported (${added} new students added).`, 'success');
+        } catch (err) {
+          showToast('Error parsing roster CSV file.', 'error');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    // =========================================================================
+    // UTILITY HELPERS & TOAST NOTIFICATIONS
+    // =========================================================================
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function csvEscape(val) {
+      const str = String(val ?? '').replace(/"/g, '""');
+      return `"${str}"`;
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const colors = {
+        success: 'bg-emerald-900 text-white border-emerald-700',
+        error: 'bg-rose-900 text-white border-rose-700',
+        info: 'bg-slate-900 text-white border-slate-700'
+      };
+      const cls = colors[type] || colors.info;
+
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-lg text-xs font-bold flex items-center justify-between gap-3 panel-fade ${cls}`;
+      toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => toast.remove(), 260);
+      }, 3200);
+    }
+
+    // Expose all inline HTML event handlers on window for ES module compatibility
+    Object.assign(window, {
+      switchWorkspaceTab,
+      closePinModal,
+      submitRolePin,
+      handleStudentIdInput,
+      selectProcess,
+      goToStep2,
+      goToStep1,
+      selectMachine,
+      setDuration,
+      handleDurationInput,
+      toggleMaterialChip,
+      focusCustomMaterial,
+      handleFilamentInput,
+      validateFilamentAmountInput,
+      goToStep3,
+      handleFileSelect,
+      removeUploadedFile,
+      submit3DPrintForm,
+      submitLaserForm,
+      resetForm,
+      toggleManagerMode,
+      toggleTeacherMode,
+      togglePinChangeStrip,
+      requestClearSamples,
+      exportQueueCsv,
+      saveNewRolePin,
+      cancelTeacherConfirm,
+      renderQueue,
+      setStatusFilter,
+      setProcessFilter,
+      copySubmissionsForSheets,
+      renderSubmissionsTab,
+      handleRosterCsvImport,
+      addRosterStudent,
+      renderRosterTab,
+      updateEntryStatus,
+      moveEntry,
+      deleteEntry,
+      downloadEntryFile,
+      updateRosterNotes,
+      cancelDeleteRosterStudent,
+      confirmDeleteRosterStudent,
+      requestDeleteRosterStudent
+    });
+  </script>
+</body>
+</html>
