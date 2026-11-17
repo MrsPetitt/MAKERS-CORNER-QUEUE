@@ -579,7 +579,7 @@
               </div>
             </div>
 
-            <!-- Rules & Reminders Box (Exact Google Form Content) -->
+            <!-- Rules & Reminders Box -->
             <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 sm:p-5 space-y-3">
               <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                 <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -1271,13 +1271,11 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // =========================================================================
     // CLOUD CONFIGURATION & DEFAULT CLASSROOM ROSTER (43 STUDENTS)
     // =========================================================================
-    // Optional: If hosting externally (e.g., Netlify, Vercel, or GitHub Pages),
-    // paste your Firebase web config values below so all computers sync in real time.
     const MANUAL_CLOUD_CONFIG = {
       apiKey: "AIzaSyCNRBestHvxJO4XuD4jFqhrvacWonWRMNk",
       authDomain: "makers-corner-queue.firebaseapp.com",
@@ -1466,7 +1464,7 @@
 
     async function initCloudStorage() {
       if (!rawFirebaseConfig) {
-        updateCloudSyncBadge('offline', 'Local Browser Storage (Add Cloud Config to Sync Across PCs)');
+        updateCloudSyncBadge('offline', 'Local Browser Storage');
         loadFromLocalStorage();
         return;
       }
@@ -1490,7 +1488,7 @@
         }
 
         updateCloudSyncBadge('connected', 'Cloud Synced');
-        subscribeToClassroomData();
+        await subscribeToClassroomData();
       } catch (err) {
         console.error('Cloud initialization failed:', err);
         updateCloudSyncBadge('offline', 'Local Browser Storage');
@@ -1498,7 +1496,7 @@
       }
     }
 
-    function subscribeToClassroomData() {
+    async function subscribeToClassroomData() {
       if (!db || !currentUser) return;
 
       const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'classroom_settings', 'config');
@@ -1506,6 +1504,17 @@
       const rosterColRef = collection(db, 'artifacts', appId, 'public', 'data', 'roster_students');
 
       let settingsData = {};
+      try {
+        const initialSettingsSnap = await getDoc(settingsRef);
+        if (initialSettingsSnap.exists()) {
+          settingsData = initialSettingsSnap.data();
+          if (settingsData.teacherPin) teacherPinValue = String(settingsData.teacherPin);
+          if (settingsData.managerPin) managerPinValue = String(settingsData.managerPin);
+        }
+      } catch (err) {
+        console.warn('Initial settings read skipped:', err);
+      }
+
       let initialQueueCheckDone = false;
       let initialRosterCheckDone = false;
 
@@ -1857,11 +1866,9 @@
       const rosterActionsTh = document.getElementById('roster-actions-th');
       const pinTargetSelect = document.getElementById('pin-change-target-select');
 
-      // Reset PIN change & confirm strips
       document.getElementById('pin-change-strip').classList.add('hidden');
       cancelTeacherConfirm();
 
-      // Update button labels across Queue & Tracker tabs
       const mgrText = role === 'manager' ? 'Lock Manager' : 'Student Manager';
       const tchText = role === 'teacher' ? 'Lock Teacher Mode' : 'Teacher Mode (Mrs. P)';
 
@@ -1893,7 +1900,6 @@
         toolbar.classList.add('hidden');
       }
 
-      // Teacher-only exports & roster editing controls
       const isTeacher = canExportData();
       if (queueExportBtn) queueExportBtn.classList.toggle('hidden', !isTeacher);
       if (subExportControls) subExportControls.classList.toggle('hidden', !isTeacher);
@@ -2489,7 +2495,6 @@
         }
       }
 
-      // Populate Step 4 Confirmation Ticket
       const activeList = queueItems.filter((i) => i.status !== 'Completed');
       const pos = activeList.findIndex((i) => i.id === entryId) + 1;
 
@@ -2599,7 +2604,6 @@
 
       const searchTerm = (document.getElementById('queue-search-input')?.value || '').trim().toLowerCase();
 
-      // Active count excludes Completed
       const activeCount = queueItems.filter((i) => i.status !== 'Completed').length;
       if (countBadge) countBadge.textContent = activeCount;
 
@@ -2642,7 +2646,6 @@
         };
         const statusCls = statusBadgeStyles[item.status] || statusBadgeStyles['Waiting'];
 
-        // Live-resolve roster name if student was added after submission
         const rosterMatch = rosterList.find((r) => String(r.id).trim() === String(item.studentId).trim());
         const displayName = rosterMatch ? `${rosterMatch.firstName} ${rosterMatch.lastName}` : item.studentName;
         const ftc = rosterMatch ? rosterMatch.ftcTeam : item.ftcTeam;
@@ -2876,7 +2879,6 @@
       const tbody = document.getElementById('submissions-table-body');
       if (!tbody) return;
 
-      // Summary metrics across all submissions
       const total = queueItems.length;
       const waiting = queueItems.filter((i) => i.status === 'Waiting').length;
       const inProgress = queueItems.filter((i) => i.status === 'In Progress').length;
