@@ -101,6 +101,74 @@
     </div>
   </div>
 
+  <!-- Job Completion Feedback Prompt Modal (Teacher & Student Manager) -->
+  <div id="feedback-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 panel-fade">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h6m-6 8l-4-4V6a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H7z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Add Print Feedback &amp; Comments</h3>
+            <p id="feedback-modal-subtitle" class="text-xs text-slate-500">Job marked as Completed</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeFeedbackModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form onsubmit="submitFeedbackModal(event)" class="space-y-3">
+        <input type="hidden" id="feedback-modal-job-id" value="" />
+
+        <!-- Quick Feedback Chips -->
+        <div class="space-y-1.5">
+          <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Quick Comments</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="appendQuickFeedback('Clean print, ready for pickup.')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-[11px] font-semibold text-slate-700 border border-slate-200 transition">
+              + Clean print, ready for pickup
+            </button>
+            <button type="button" onclick="appendQuickFeedback('Supports need careful removal.')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-[11px] font-semibold text-slate-700 border border-slate-200 transition">
+              + Supports need removal
+            </button>
+            <button type="button" onclick="appendQuickFeedback('Adhesion / print failure — check settings & retry.')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-[11px] font-semibold text-slate-700 border border-slate-200 transition">
+              + Print failure / retry
+            </button>
+            <button type="button" onclick="appendQuickFeedback('Clean laser cut, build pan cleared.')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-[11px] font-semibold text-slate-700 border border-slate-200 transition">
+              + Clean laser cut
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label for="completion-feedback-input" class="block text-xs font-bold text-slate-700 mb-1">
+            Feedback / Notes for Submissions Tracker
+          </label>
+          <textarea
+            id="completion-feedback-input"
+            rows="3"
+            placeholder="Enter quality notes, slicer feedback, filament used, or pickup instructions..."
+            class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          ></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" onclick="closeFeedbackModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">
+            Skip
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+            Save Feedback
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Top Navigation & Live Machine Status Header -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
@@ -1124,6 +1192,7 @@
                 <th class="py-3 px-4">Material &amp; Grams</th>
                 <th class="py-3 px-4">Project Details &amp; File</th>
                 <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Feedback &amp; Comments</th>
               </tr>
             </thead>
             <tbody id="submissions-table-body" class="divide-y divide-slate-200 text-xs">
@@ -1268,11 +1337,7 @@
   </footer>
 
   <!-- Interactive Application Script with Real-Time Cloud Sync & Local Fallback -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+  <script>
     // =========================================================================
     // CLOUD CONFIGURATION & DEFAULT CLASSROOM ROSTER (43 STUDENTS)
     // =========================================================================
@@ -1301,6 +1366,7 @@
     let db = null;
     let auth = null;
     let currentUser = null;
+    let firestoreOps = null; // Holds dynamically imported Firestore functions
 
     const DEFAULT_TEACHER_PIN = '1234';
     const DEFAULT_MANAGER_PIN = '2468';
@@ -1387,12 +1453,18 @@
     // =========================================================================
     // INITIALIZATION (CLOUD SYNC + LOCAL FALLBACK)
     // =========================================================================
-    window.addEventListener('DOMContentLoaded', () => {
+    function bootstrapClassroomApp() {
       setupDragAndDrop();
       populateTeamFilterDropdowns();
       renderAllViews();
       initCloudStorage();
-    });
+    }
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', bootstrapClassroomApp);
+    } else {
+      bootstrapClassroomApp();
+    }
 
     function updateCloudSyncBadge(state, label) {
       const badge = document.getElementById('cloud-sync-badge');
@@ -1470,6 +1542,18 @@
       }
 
       try {
+        const [
+          { initializeApp },
+          { getAuth, signInAnonymously, signInWithCustomToken },
+          { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection }
+        ] = await Promise.all([
+          import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"),
+          import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"),
+          import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js")
+        ]);
+
+        firestoreOps = { doc, getDoc, setDoc, deleteDoc, onSnapshot, collection };
+
         const app = initializeApp(rawFirebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
@@ -1497,7 +1581,8 @@
     }
 
     async function subscribeToClassroomData() {
-      if (!db || !currentUser) return;
+      if (!db || !currentUser || !firestoreOps) return;
+      const { doc, getDoc, onSnapshot, collection } = firestoreOps;
 
       const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'classroom_settings', 'config');
       const queueColRef = collection(db, 'artifacts', appId, 'public', 'data', 'queue_items');
@@ -1608,6 +1693,7 @@
           fileSize: '2.4 MB',
           fileDataUrl: '',
           status: 'In Progress',
+          feedback: '',
           timestamp: '10:15 AM',
           isSample: true
         },
@@ -1628,6 +1714,7 @@
           fileSize: '',
           fileDataUrl: '',
           status: 'Waiting',
+          feedback: '',
           timestamp: '10:32 AM',
           isSample: true
         },
@@ -1648,6 +1735,7 @@
           fileSize: '3.1 MB',
           fileDataUrl: '',
           status: 'Waiting',
+          feedback: '',
           timestamp: '10:44 AM',
           isSample: true
         }
@@ -1655,7 +1743,8 @@
     }
 
     async function seedCloudSampleQueue(settingsRef) {
-      if (!db || !currentUser) return;
+      if (!db || !currentUser || !firestoreOps) return;
+      const { doc, setDoc } = firestoreOps;
       try {
         await setDoc(settingsRef, { samplesSeeded: true }, { merge: true });
         const samples = getSampleEntries();
@@ -1669,7 +1758,8 @@
     }
 
     async function seedCloudDefaultRoster(settingsRef) {
-      if (!db || !currentUser) return;
+      if (!db || !currentUser || !firestoreOps) return;
+      const { doc, setDoc } = firestoreOps;
       try {
         await setDoc(settingsRef, { rosterSeeded: true }, { merge: true });
         for (const student of DEFAULT_ROSTER) {
@@ -1778,7 +1868,8 @@
 
       saveToLocalStorage();
 
-      if (db && currentUser) {
+      if (db && currentUser && firestoreOps) {
+        const { doc, setDoc } = firestoreOps;
         try {
           const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'classroom_settings', 'config');
           const patch = role === 'manager' ? { managerPin: newPin } : { teacherPin: newPin };
@@ -1866,9 +1957,11 @@
       const rosterActionsTh = document.getElementById('roster-actions-th');
       const pinTargetSelect = document.getElementById('pin-change-target-select');
 
+      // Reset PIN change & confirm strips
       document.getElementById('pin-change-strip').classList.add('hidden');
       cancelTeacherConfirm();
 
+      // Update button labels across Queue & Tracker tabs
       const mgrText = role === 'manager' ? 'Lock Manager' : 'Student Manager';
       const tchText = role === 'teacher' ? 'Lock Teacher Mode' : 'Teacher Mode (Mrs. P)';
 
@@ -1900,6 +1993,7 @@
         toolbar.classList.add('hidden');
       }
 
+      // Teacher-only exports & roster editing controls
       const isTeacher = canExportData();
       if (queueExportBtn) queueExportBtn.classList.toggle('hidden', !isTeacher);
       if (subExportControls) subExportControls.classList.toggle('hidden', !isTeacher);
@@ -1957,7 +2051,8 @@
         saveToLocalStorage();
         renderAllViews();
 
-        if (db && currentUser) {
+        if (db && currentUser && firestoreOps) {
+          const { doc, setDoc, deleteDoc } = firestoreOps;
           try {
             const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'classroom_settings', 'config');
             await setDoc(settingsRef, { samplesSeeded: true }, { merge: true });
@@ -2477,6 +2572,7 @@
         fileSize: formState.process === '3D printing' ? formState.fileSize : '',
         fileDataUrl: formState.process === '3D printing' ? formState.fileDataUrl : '',
         status: 'Waiting',
+        feedback: '',
         timestamp,
         isSample: false
       };
@@ -2485,7 +2581,8 @@
       saveToLocalStorage();
       renderAllViews();
 
-      if (db && currentUser) {
+      if (db && currentUser && firestoreOps) {
+        const { doc, setDoc } = firestoreOps;
         try {
           const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', entryId);
           await setDoc(itemRef, newEntry);
@@ -2495,6 +2592,7 @@
         }
       }
 
+      // Populate Step 4 Confirmation Ticket
       const activeList = queueItems.filter((i) => i.status !== 'Completed');
       const pos = activeList.findIndex((i) => i.id === entryId) + 1;
 
@@ -2604,6 +2702,7 @@
 
       const searchTerm = (document.getElementById('queue-search-input')?.value || '').trim().toLowerCase();
 
+      // Active count excludes Completed
       const activeCount = queueItems.filter((i) => i.status !== 'Completed').length;
       if (countBadge) countBadge.textContent = activeCount;
 
@@ -2646,6 +2745,7 @@
         };
         const statusCls = statusBadgeStyles[item.status] || statusBadgeStyles['Waiting'];
 
+        // Live-resolve roster name if student was added after submission
         const rosterMatch = rosterList.find((r) => String(r.id).trim() === String(item.studentId).trim());
         const displayName = rosterMatch ? `${rosterMatch.firstName} ${rosterMatch.lastName}` : item.studentName;
         const ftc = rosterMatch ? rosterMatch.ftcTeam : item.ftcTeam;
@@ -2694,6 +2794,13 @@
             <p class="text-xs text-slate-300 leading-relaxed">
               ${escapeHtml(item.description)}
             </p>
+
+            <!-- Saved Print Feedback Note (if present) -->
+            ${item.feedback ? `
+              <div class="rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-xs text-emerald-200">
+                <span class="font-extrabold text-emerald-300">Feedback:</span> ${escapeHtml(item.feedback)}
+              </div>
+            ` : ''}
 
             <!-- Attached 3D File Bar -->
             ${item.fileName ? `
@@ -2775,7 +2882,8 @@
       saveToLocalStorage();
       renderAllViews();
 
-      if (db && currentUser) {
+      if (db && currentUser && firestoreOps) {
+        const { doc, setDoc } = firestoreOps;
         try {
           const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id);
           await setDoc(itemRef, { status: newStatus }, { merge: true });
@@ -2784,7 +2892,81 @@
         }
       }
 
-      showToast(`Updated ${item.studentName} to "${newStatus}".`, 'info');
+      if (newStatus === 'Completed') {
+        openFeedbackModal(id);
+      } else {
+        showToast(`Updated ${item.studentName} to "${newStatus}".`, 'info');
+      }
+    }
+
+    function openFeedbackModal(jobId) {
+      if (!canManageQueue()) return;
+      const item = queueItems.find((i) => i.id === jobId);
+      if (!item) return;
+
+      const rosterMatch = rosterList.find((r) => String(r.id).trim() === String(item.studentId).trim());
+      const displayName = rosterMatch ? `${rosterMatch.firstName} ${rosterMatch.lastName}` : item.studentName;
+
+      document.getElementById('feedback-modal-job-id').value = item.id;
+      document.getElementById('feedback-modal-subtitle').textContent =
+        `${displayName} (#${item.studentId}) • ${item.process} (${item.machine})`;
+      const input = document.getElementById('completion-feedback-input');
+      input.value = item.feedback || '';
+
+      document.getElementById('feedback-modal').classList.remove('hidden');
+      setTimeout(() => input.focus(), 50);
+    }
+
+    function closeFeedbackModal() {
+      const modal = document.getElementById('feedback-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function appendQuickFeedback(snippet) {
+      const input = document.getElementById('completion-feedback-input');
+      if (!input) return;
+      const current = (input.value || '').trim();
+      if (!current) {
+        input.value = snippet;
+      } else if (!current.includes(snippet)) {
+        input.value = `${current} ${snippet}`;
+      }
+      input.focus();
+    }
+
+    async function submitFeedbackModal(e) {
+      e.preventDefault();
+      if (!canManageQueue()) return;
+      const jobId = document.getElementById('feedback-modal-job-id').value;
+      const feedbackText = (document.getElementById('completion-feedback-input').value || '').trim();
+      closeFeedbackModal();
+      await updateEntryFeedback(jobId, feedbackText, true);
+    }
+
+    async function updateEntryFeedback(id, newFeedback, notify = true) {
+      if (!canManageQueue()) return;
+      const item = queueItems.find((i) => i.id === id);
+      if (!item) return;
+
+      item.feedback = String(newFeedback || '').trim();
+      saveToLocalStorage();
+      renderAllViews();
+
+      if (db && currentUser && firestoreOps) {
+        const { doc, setDoc } = firestoreOps;
+        try {
+          const itemRef = doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id);
+          await setDoc(itemRef, { feedback: item.feedback }, { merge: true });
+        } catch (err) {
+          console.error('Error saving job feedback:', err);
+          showToast('Saved locally, but cloud sync failed.', 'error');
+          return;
+        }
+      }
+
+      if (notify) {
+        showToast('Feedback saved to Submissions Tracker.', 'success');
+      }
     }
 
     async function moveEntry(id, direction) {
@@ -2807,7 +2989,8 @@
       saveToLocalStorage();
       renderAllViews();
 
-      if (db && currentUser) {
+      if (db && currentUser && firestoreOps) {
+        const { doc, setDoc } = firestoreOps;
         try {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', currentItem.id), { order: currentItem.order }, { merge: true });
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', swapItem.id), { order: swapItem.order }, { merge: true });
@@ -2823,7 +3006,8 @@
       saveToLocalStorage();
       renderAllViews();
 
-      if (db && currentUser) {
+      if (db && currentUser && firestoreOps) {
+        const { doc, deleteDoc } = firestoreOps;
         try {
           await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue_items', id));
         } catch (err) {
@@ -2879,6 +3063,7 @@
       const tbody = document.getElementById('submissions-table-body');
       if (!tbody) return;
 
+      // Summary metrics across all submissions
       const total = queueItems.length;
       const waiting = queueItems.filter((i) => i.status === 'Waiting').length;
       const inProgress = queueItems.filter((i) => i.status === 'In Progress').length;
@@ -2914,7 +3099,7 @@
         if (processFilter !== 'all' && item.process !== processFilter) return false;
         if (machineFilter !== 'all' && item.machine !== machineFilter) return false;
         if (searchTerm) {
-          const hay = `${item.studentId} ${item.studentName} ${item.ftcTeam} ${item.frcTeam} ${item.machine} ${item.filament} ${item.description}`.toLowerCase();
+          const hay = `${item.studentId} ${item.studentName} ${item.ftcTeam} ${item.frcTeam} ${item.machine} ${item.filament} ${item.description} ${item.feedback || ''}`.toLowerCase();
           if (!hay.includes(searchTerm)) return false;
         }
         return true;
@@ -2923,7 +3108,7 @@
       if (filtered.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" class="py-8 px-4 text-center text-slate-500 font-medium">
+            <td colspan="10" class="py-8 px-4 text-center text-slate-500 font-medium">
               No submissions match your current filters.
             </td>
           </tr>
@@ -2993,6 +3178,21 @@
                 </span>
               `}
             </td>
+            <td class="py-3 px-4 min-w-[210px] max-w-xs">
+              ${managerAllowed ? `
+                <textarea
+                  rows="2"
+                  aria-label="Print feedback and comments"
+                  placeholder="Add print feedback or comments..."
+                  onchange="updateEntryFeedback('${item.id}', this.value)"
+                  class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >${escapeHtml(item.feedback || '')}</textarea>
+              ` : `
+                ${item.feedback
+                  ? `<p class="text-slate-700 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.feedback)}</p>`
+                  : '<span class="text-slate-400 italic">No feedback yet</span>'}
+              `}
+            </td>
           </tr>
         `;
       }).join('');
@@ -3018,7 +3218,8 @@
         'Filament (g)',
         'Description',
         '3D File',
-        'Status'
+        'Status',
+        'Feedback & Comments'
       ];
 
       const rows = queueItems.map((item, idx) => {
@@ -3041,7 +3242,8 @@
           item.filamentAmount || '',
           item.description,
           item.fileName || '',
-          item.status
+          item.status,
+          item.feedback || ''
         ].map(csvEscape).join(',');
       });
 
@@ -3078,7 +3280,8 @@
         'Filament (g)',
         'Description',
         '3D File',
-        'Status'
+        'Status',
+        'Feedback & Comments'
       ];
 
       const lines = [headers.join('\t')];
@@ -3102,7 +3305,8 @@
           item.filamentAmount || '',
           String(item.description || '').replace(/[\r\n\t]+/g, ' '),
           item.fileName || '',
-          item.status
+          item.status,
+          String(item.feedback || '').replace(/[\r\n\t]+/g, ' ')
         ];
         lines.push(cols.join('\t'));
       });
@@ -3283,7 +3487,8 @@
       populateTeamFilterDropdowns();
       renderAllViews();
 
-      if (db && currentUser) {
+      if (db && currentUser && firestoreOps) {
+        const { doc, setDoc } = firestoreOps;
         try {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'roster_students', id), newStudent);
         } catch (err) {
@@ -3301,7 +3506,8 @@
       student.notes = notes;
       saveToLocalStorage();
 
-      if (db && currentUser) {
+      if (db && currentUser && firestoreOps) {
+        const { doc, setDoc } = firestoreOps;
         try {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'roster_students', String(studentId)), { notes }, { merge: true });
         } catch (err) {
@@ -3332,7 +3538,8 @@
       populateTeamFilterDropdowns();
       renderAllViews();
 
-      if (db && currentUser) {
+      if (db && currentUser && firestoreOps) {
+        const { doc, deleteDoc } = firestoreOps;
         try {
           await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'roster_students', String(studentId)));
         } catch (err) {
@@ -3382,7 +3589,8 @@
           populateTeamFilterDropdowns();
           renderAllViews();
 
-          if (db && currentUser) {
+          if (db && currentUser && firestoreOps) {
+            const { doc, setDoc } = firestoreOps;
             for (const st of upsertedStudents) {
               await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'roster_students', String(st.id)), st);
             }
@@ -3436,53 +3644,6 @@
         setTimeout(() => toast.remove(), 260);
       }, 3200);
     }
-
-    // Expose all inline HTML event handlers on window for ES module compatibility
-    Object.assign(window, {
-      switchWorkspaceTab,
-      closePinModal,
-      submitRolePin,
-      handleStudentIdInput,
-      selectProcess,
-      goToStep2,
-      goToStep1,
-      selectMachine,
-      setDuration,
-      handleDurationInput,
-      toggleMaterialChip,
-      focusCustomMaterial,
-      handleFilamentInput,
-      validateFilamentAmountInput,
-      goToStep3,
-      handleFileSelect,
-      removeUploadedFile,
-      submit3DPrintForm,
-      submitLaserForm,
-      resetForm,
-      toggleManagerMode,
-      toggleTeacherMode,
-      togglePinChangeStrip,
-      requestClearSamples,
-      exportQueueCsv,
-      saveNewRolePin,
-      cancelTeacherConfirm,
-      renderQueue,
-      setStatusFilter,
-      setProcessFilter,
-      copySubmissionsForSheets,
-      renderSubmissionsTab,
-      handleRosterCsvImport,
-      addRosterStudent,
-      renderRosterTab,
-      updateEntryStatus,
-      moveEntry,
-      deleteEntry,
-      downloadEntryFile,
-      updateRosterNotes,
-      cancelDeleteRosterStudent,
-      confirmDeleteRosterStudent,
-      requestDeleteRosterStudent
-    });
   </script>
 </body>
 </html>
