@@ -1363,23 +1363,23 @@
 
         <!-- Spreadsheet Table -->
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
+          <table class="w-full text-left border-collapse table-auto">
             <thead>
-              <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-600">
-                <th class="py-3 px-4">#</th>
-                <th class="py-3 px-4">Time</th>
-                <th class="py-3 px-4">Student</th>
-                <th class="py-3 px-4">Teams</th>
-                <th class="py-3 px-4">Process &amp; Machine</th>
-                <th class="py-3 px-4">Duration</th>
-                <th class="py-3 px-4">Material &amp; Grams</th>
-                <th class="py-3 px-4">Project Details &amp; File</th>
-                <th class="py-3 px-4">Status</th>
-                <th class="py-3 px-4">Feedback &amp; Comments</th>
-                <th id="submissions-actions-th" class="hidden py-3 px-4 text-right">Actions</th>
+              <tr class="bg-slate-100 border-b border-slate-200 text-[10px] font-extrabold uppercase tracking-wider text-slate-600">
+                <th class="py-2.5 px-2 text-center w-8">#</th>
+                <th class="py-2.5 px-2 whitespace-nowrap">Time</th>
+                <th class="py-2.5 px-2">Student</th>
+                <th class="py-2.5 px-2">Teams</th>
+                <th class="py-2.5 px-2">Machine</th>
+                <th class="py-2.5 px-2 whitespace-nowrap">Duration</th>
+                <th class="py-2.5 px-2">Material</th>
+                <th class="py-2.5 px-2">Project Details &amp; File</th>
+                <th class="py-2.5 px-2">Status</th>
+                <th class="py-2.5 px-2">Feedback &amp; Comments</th>
+                <th id="submissions-actions-th" class="hidden py-2.5 px-2 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody id="submissions-table-body" class="divide-y divide-slate-200 text-xs">
+            <tbody id="submissions-table-body" class="divide-y divide-slate-200 text-[11px]">
               <!-- Populated dynamically via JS -->
             </tbody>
           </table>
@@ -3489,66 +3489,71 @@
 
         return `
           <tr class="hover:bg-slate-50 transition">
-            <td class="py-3 px-4 font-extrabold text-slate-500">${idx + 1}</td>
-            <td class="py-3 px-4 text-slate-600 whitespace-nowrap">${escapeHtml(item.timestamp || '—')}</td>
-            <td class="py-3 px-4 whitespace-nowrap">
+            <td class="py-2.5 px-2 text-center font-extrabold text-slate-500">${idx + 1}</td>
+            <td class="py-2.5 px-2 text-slate-600 whitespace-nowrap">${escapeHtml(item.timestamp || '—')}</td>
+            <td class="py-2.5 px-2 leading-tight">
               <div class="font-extrabold text-slate-900">${escapeHtml(displayName)}</div>
-              <div class="text-[11px] font-semibold text-slate-500">ID #${escapeHtml(item.studentId)}</div>
+              <div class="text-[10px] font-semibold text-slate-500">#${escapeHtml(item.studentId)}</div>
             </td>
-            <td class="py-3 px-4">
+            <td class="py-2.5 px-2">
               <div class="flex flex-wrap gap-1">
-                ${ftc ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">FTC: ${escapeHtml(ftc)}</span>` : ''}
-                ${frc ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">FRC: ${escapeHtml(frc)}</span>` : ''}
+                ${ftc ? `<span title="FTC: ${escapeHtml(ftc)}" class="px-1.5 py-0.5 rounded text-[10px] font-extrabold leading-tight ${getTeamBadgeClasses(ftc)}">${escapeHtml(formatShortTeamName(ftc))}</span>` : ''}
+                ${frc ? `<span title="FRC: ${escapeHtml(frc)}" class="px-1.5 py-0.5 rounded text-[10px] font-extrabold leading-tight ${getTeamBadgeClasses(frc)}">${escapeHtml(formatShortTeamName(frc))}</span>` : ''}
                 ${!ftc && !frc ? '<span class="text-slate-400">—</span>' : ''}
               </div>
             </td>
-            <td class="py-3 px-4 whitespace-nowrap">
-              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${isLaser ? 'bg-amber-100 text-amber-900' : 'bg-indigo-100 text-indigo-900'}">
-                ${escapeHtml(item.process)} • ${escapeHtml(item.machine)}
-              </span>
+            <td class="py-2.5 px-2 leading-tight whitespace-nowrap">
+              <div class="inline-flex flex-col gap-0.5">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-extrabold leading-tight ${isLaser ? 'bg-amber-100 text-amber-900' : 'bg-indigo-100 text-indigo-900'}">
+                  ${escapeHtml(item.machine)}
+                </span>
+                <span class="text-[10px] font-semibold text-slate-500">
+                  ${isLaser ? 'Laser Cut' : '3D Print'}
+                </span>
+              </div>
             </td>
-            <td class="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap">${escapeHtml(item.duration)}</td>
-            <td class="py-3 px-4 whitespace-nowrap">
+            <td class="py-2.5 px-2 font-semibold text-slate-700 whitespace-nowrap">${escapeHtml(item.duration)}</td>
+            <td class="py-2.5 px-2 leading-tight">
               ${item.filament
-                ? `<span class="font-bold text-slate-800">${escapeHtml(item.filament)}</span>${item.filamentAmount ? ` <span class="text-slate-500">(${escapeHtml(item.filamentAmount)}g)</span>` : ''}`
+                ? `<div class="font-bold text-slate-800">${escapeHtml(item.filament)}</div>${item.filamentAmount ? `<div class="text-[10px] font-semibold text-slate-500">${escapeHtml(item.filamentAmount)} g</div>` : ''}`
                 : '<span class="text-slate-400">N/A</span>'}
             </td>
-            <td class="py-3 px-4 max-w-xs">
-              <p class="text-slate-700 line-clamp-2">${escapeHtml(item.description)}</p>
-              ${item.fileName ? `<div class="text-[11px] font-bold text-indigo-600 mt-0.5 truncate">📎 ${escapeHtml(item.fileName)}</div>` : ''}
+            <td class="py-2.5 px-2 max-w-[230px]">
+              <p class="text-slate-700 leading-snug line-clamp-2" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</p>
+              ${item.fileName ? `<div class="text-[10px] font-bold text-indigo-600 mt-0.5 truncate" title="${escapeHtml(item.fileName)}">📎 ${escapeHtml(item.fileName)}</div>` : ''}
             </td>
-            <td class="py-3 px-4 whitespace-nowrap">
+            <td class="py-2.5 px-2 whitespace-nowrap">
               ${managerAllowed ? `
                 <select
                   aria-label="Submission status"
                   onchange="updateEntryStatus('${item.id}', this.value)"
-                  class="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="Waiting" ${item.status === 'Waiting' ? 'selected' : ''}>Waiting</option>
                   <option value="In Progress" ${item.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
                   <option value="Completed" ${item.status === 'Completed' ? 'selected' : ''}>Completed</option>
                 </select>
               ` : `
-                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border ${statusBadgeMap[item.status] || statusBadgeMap['Waiting']}">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadgeMap[item.status] || statusBadgeMap['Waiting']}">
                   ${escapeHtml(item.status)}
                 </span>
               `}
             </td>
-            <td class="py-3 px-4 min-w-[210px]">
+            <td class="py-2.5 px-2 min-w-[140px] max-w-[200px]">
               ${managerAllowed ? `
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1">
                   <input
                     type="text"
                     value="${escapeHtml(item.feedback || '')}"
-                    placeholder="Add feedback or comment..."
+                    placeholder="Add feedback..."
                     onchange="updateEntryFeedback('${item.id}', this.value, true)"
-                    class="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+                    class="w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-[11px] font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
                   />
                   <button
                     type="button"
                     title="Open Feedback Prompt"
                     onclick="openFeedbackModal('${item.id}')"
-                    class="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 shrink-0 transition"
+                    class="p-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 shrink-0 transition"
                   >
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h6m-6 8l-4-4V6a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H7z" />
@@ -3556,17 +3561,17 @@
                   </button>
                 </div>
               ` : `
-                <span class="text-slate-600">${item.feedback ? escapeHtml(item.feedback) : '<span class="text-slate-400">—</span>'}</span>
+                <span class="text-slate-600 leading-snug">${item.feedback ? escapeHtml(item.feedback) : '<span class="text-slate-400">—</span>'}</span>
               `}
             </td>
             ${editableSubmissions ? `
-              <td class="py-3 px-4 text-right whitespace-nowrap">
+              <td class="py-2.5 px-2 text-right whitespace-nowrap">
                 <button
                   type="button"
                   onclick="openEditSubmissionModal('${item.id}')"
-                  class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition inline-flex items-center gap-1"
+                  class="px-2 py-1 rounded-lg text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition inline-flex items-center gap-1"
                 >
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                   Edit
@@ -3776,10 +3781,10 @@
             <td class="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">${escapeHtml(student.firstName)}</td>
             <td class="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">${escapeHtml(student.lastName)}</td>
             <td class="py-3 px-4 whitespace-nowrap">
-              ${student.ftcTeam ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">${escapeHtml(student.ftcTeam)}</span>` : '<span class="text-slate-400">—</span>'}
+              ${student.ftcTeam ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-extrabold ${getTeamBadgeClasses(student.ftcTeam)}">${escapeHtml(student.ftcTeam)}</span>` : '<span class="text-slate-400">—</span>'}
             </td>
             <td class="py-3 px-4 whitespace-nowrap">
-              ${student.frcTeam ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">${escapeHtml(student.frcTeam)}</span>` : '<span class="text-slate-400">—</span>'}
+              ${student.frcTeam ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-extrabold ${getTeamBadgeClasses(student.frcTeam)}">${escapeHtml(student.frcTeam)}</span>` : '<span class="text-slate-400">—</span>'}
             </td>
             <td class="py-3 px-4 whitespace-nowrap">
               <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold ${jobCount > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'}">
@@ -3986,8 +3991,39 @@
     }
 
     // =========================================================================
-    // UTILITY HELPERS & TOAST NOTIFICATIONS
+    // TEAM COLOR CODING, SHORT NAMES & UTILITY HELPERS
     // =========================================================================
+    function formatShortTeamName(teamName) {
+      const raw = String(teamName || '').trim();
+      if (!raw) return '';
+      const key = raw.toLowerCase();
+      const shortMap = {
+        'knightmares': 'KM',
+        'knighmares': 'KM',
+        'monsters of mechanics': 'MOM',
+        'gears of liberty': 'Gears',
+        'radical robotics': 'Rad Rob',
+        'servo surge': 'Servos'
+      };
+      return shortMap[key] || raw;
+    }
+
+    function getTeamBadgeClasses(teamName) {
+      const key = String(teamName || '').trim().toLowerCase();
+      const colorMap = {
+        'knightmares': 'bg-gradient-to-r from-slate-500 to-slate-950 text-white border border-slate-950',
+        'knighmares': 'bg-gradient-to-r from-slate-500 to-slate-950 text-white border border-slate-950',
+        'clutch': 'bg-red-600 text-white border border-red-700',
+        'gears of liberty': 'bg-yellow-300 text-yellow-950 border border-yellow-500',
+        'monsters of mechanics': 'bg-lime-400 text-lime-950 border border-lime-600',
+        'radical robotics': 'bg-purple-600 text-white border border-purple-700',
+        'servo surge': 'bg-orange-500 text-white border border-orange-600',
+        'omega factor': 'bg-gradient-to-r from-red-600 to-slate-950 text-white border border-slate-950',
+        'roboponies': 'bg-gradient-to-r from-blue-600 to-pink-500 text-white border border-blue-700'
+      };
+      return colorMap[key] || 'bg-slate-100 text-slate-700 border border-slate-300';
+    }
+
     function escapeHtml(str) {
       return String(str ?? '')
         .replace(/&/g, '&amp;')
